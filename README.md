@@ -15,7 +15,7 @@ Or you can just enable in specific buffer you want.
 
 
 ## Screenshot ##
-[placeholder]
+<img src="./screenshot/auto-rename-tag-demo.png" width="330" height="240"/>
 
 
 ## Contribution ##
