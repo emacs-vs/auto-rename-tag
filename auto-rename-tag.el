@@ -4,8 +4,8 @@
 ;; Created date 2018-12-01 23:56:15
 
 ;; Author: Shen, Jen-Chieh <jcs090218@gmail.com>
-;; Description: Remind current line status by current buffer.
-;; Keyword: abbreviation customizable shortcut
+;; Description: Automatically rename paired HTML/XML tag.
+;; Keyword: auto-complete html rename tag xml
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://github.com/jcs090218/auto-rename-tag
