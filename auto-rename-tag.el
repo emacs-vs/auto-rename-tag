@@ -197,16 +197,20 @@ If not found, return -1."
             (backward-char 1)
           (auto-rename-tag-goto-forward-tag-name name))))))
 
-(defun auto-rename-tag-backward-count-nested-close-tag (name &optional nc)
+(defun auto-rename-tag-backward-count-nested-close-tag (name &optional nc dnc)
   "Search backward, return the count of the nested closing tag.
 NAME : target word/tag name to check nested.
-NC : recursive nested count."
+NC : recursive nested count.
+DNC : duplicate nested count."
   (save-excursion
     (let ((nested-count 0)
+          (dup-nested-count 0)
           (current-word "")
           (is-end-tag nil))
       (when nc
         (setq nested-count nc))
+      (when dnc
+        (setq dup-nested-count nc))
 
       (auto-rename-tag-goto-backward-tag)
 
@@ -231,24 +235,36 @@ NC : recursive nested count."
         (if is-end-tag
             (progn
               (when (string= current-word name)
-                (setq nested-count (+ nested-count 1)))
-              (setq nested-count (auto-rename-tag-backward-count-nested-close-tag name nested-count)))
+                (setq nested-count (+ nested-count 1))
+                (setq dup-nested-count (+ dup-nested-count 1)))
+              (setq nested-count
+                    (auto-rename-tag-backward-count-nested-close-tag name
+                                                                     nested-count
+                                                                     dup-nested-count)))
           ;; If opening tag.
-          (when (not (string= current-word name))
-            ;;(setq nested-count (auto-rename-tag-backward-count-nested-close-tag name nested-count))
-            )))
+          (when (not (= dup-nested-count 0))
+            (when (string= current-word name)
+              (setq dup-nested-count (- dup-nested-count 1))
+              (setq nested-count
+                    (auto-rename-tag-backward-count-nested-close-tag name
+                                                                     nested-count
+                                                                     dup-nested-count))))))
       nested-count)))
 
-(defun auto-rename-tag-forward-count-nested-open-tag (name &optional nc)
+(defun auto-rename-tag-forward-count-nested-open-tag (name &optional nc dnc)
   "Search forward, return the count of the nested opening tag.
 NAME : target word/tag name to check nested.
-NC : recursive nested count."
+NC : recursive nested count.
+DNC : duplicate nested count."
   (save-excursion
     (let ((nested-count 0)
+          (dup-nested-count 0)
           (current-word "")
           (is-end-tag nil))
       (when nc
         (setq nested-count nc))
+      (when dnc
+        (setq dup-nested-count dnc))
 
       (auto-rename-tag-goto-forward-tag)
 
@@ -271,14 +287,40 @@ NC : recursive nested count."
 
         ;; If closing tag.
         (if is-end-tag
-            (when (not (string= current-word name))
-              (setq nested-count (auto-rename-tag-forward-count-nested-open-tag name nested-count)))
+            (when (not (= dup-nested-count 0))
+              (when (string= current-word name)
+                (setq dup-nested-count (- dup-nested-count 1))
+                (setq nested-count
+                      (auto-rename-tag-forward-count-nested-open-tag name
+                                                                     nested-count
+                                                                     dup-nested-count))))
           ;; If opening tag.
           (progn
             (when (string= current-word name)
-              (setq nested-count (+ nested-count 1)))
-            (setq nested-count (auto-rename-tag-forward-count-nested-open-tag name nested-count)))))
+              (setq nested-count (+ nested-count 1))
+              (setq dup-nested-count (+ dup-nested-count 1)))
+            (setq nested-count
+                  (auto-rename-tag-forward-count-nested-open-tag name
+                                                                 nested-count
+                                                                 dup-nested-count)))))
       nested-count)))
+
+
+(defun okay-test ()
+  (interactive)
+  (message "BC : %s" (auto-rename-tag-backward-count-nested-close-tag "div"))
+  (message "FO : %s" (auto-rename-tag-forward-count-nested-open-tag "div"))
+  ;;(auto-rename-tag-goto-backward-tag-name "div")
+  ;;(auto-rename-tag-goto-forward-tag-name "div")
+
+  ;; (let ((nested-count 2))
+  ;;   (while (not (= nested-count 0))
+  ;;     (setq nested-count (- nested-count 1))
+  ;;     (auto-rename-tag-goto-forward-tag-name "")
+  ;;     (auto-rename-tag-goto-forward-tag-name "")))
+
+  ;;(auto-rename-tag-goto-backward-tag-name "")
+  )
 
 
 (defun auto-rename-tag-before-change-functions (begin end)
