@@ -140,42 +140,62 @@ If not found, return -1."
   (let ((is-end-tag nil)
         (current-word ""))
     (auto-rename-tag-goto-backward-tag)
-    (forward-char 1)
 
-    (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
-    (when is-end-tag
-      (forward-char 1))
-    (setq current-word (thing-at-point 'word))
+    (when (not (auto-rename-tag-is-beginning-of-buffer-p))
+      (forward-char 1)
 
-    (if current-word
-        (if (not (string= current-word name))
-            (auto-rename-tag-goto-backward-tag-name name)
-          (backward-char 1))
-      (if (or (not name)  ;; If, nil.
-              (string= name ""))
-          (backward-char 1)
-        (auto-rename-tag-goto-backward-tag-name name)))))
+      (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
+      (when is-end-tag
+        (forward-char 1))
+      ;; If outside of tag, go back then.
+      (when (not (auto-rename-tag-inside-tag))
+        (backward-char 1))
+      (setq current-word (thing-at-point 'word))
+
+      ;; Ensure `current-word'/name is something other than nil.
+      (when (not current-word)
+        (setq current-word ""))
+      (when (not name)
+        (setq name ""))
+
+      (if current-word
+          (if (not (string= current-word name))
+              (auto-rename-tag-goto-backward-tag-name name)
+            (backward-char 1))
+        (if (string= name "")
+            (backward-char 1)
+          (auto-rename-tag-goto-backward-tag-name name))))))
 
 (defun auto-rename-tag-goto-forward-tag-name (name)
   "Goto the forward tag name 'NAME'."
   (let ((is-end-tag nil)
         (current-word ""))
     (auto-rename-tag-goto-forward-tag)
-    (forward-char 1)
 
-    (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
-    (when is-end-tag
-      (forward-char 1))
-    (setq current-word (thing-at-point 'word))
+    (when (not (auto-rename-tag-is-end-of-buffer-p))
+      (forward-char 1)
 
-    (if current-word
-        (if (not (string= current-word name))
-            (auto-rename-tag-goto-forward-tag-name name)
-          (backward-char 1))
-      (if (or (not name)  ;; If, nil.
-              (string= name ""))
-          (backward-char 1)
-        (auto-rename-tag-goto-forward-tag-name name)))))
+      (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
+      (when is-end-tag
+        (forward-char 1)
+        ;; If end of tag, go back then.
+        (when (not (auto-rename-tag-inside-tag))
+          (backward-char 1)))
+      (setq current-word (thing-at-point 'word))
+
+      ;; Ensure `current-word'/name is something other than nil.
+      (when (not current-word)
+        (setq current-word ""))
+      (when (not name)
+        (setq name ""))
+
+      (if current-word
+          (if (not (string= current-word name))
+              (auto-rename-tag-goto-forward-tag-name name)
+            (backward-char 1))
+        (if (string= name "")
+            (backward-char 1)
+          (auto-rename-tag-goto-forward-tag-name name))))))
 
 (defun auto-rename-tag-backward-count-nested-close-tag (name &optional nc)
   "Search backward, return the count of the nested closing tag.
@@ -201,7 +221,7 @@ NC : recursive nested count."
           (backward-char 1))
         (setq current-word (thing-at-point 'word))
 
-        ;; Ensure current-word/name is something other than nil.
+        ;; Ensure `current-word'/name is something other than nil.
         (when (not current-word)
           (setq current-word ""))
         (when (not name)
@@ -215,7 +235,8 @@ NC : recursive nested count."
               (setq nested-count (auto-rename-tag-backward-count-nested-close-tag name nested-count)))
           ;; If opening tag.
           (when (not (string= current-word name))
-            (setq nested-count (auto-rename-tag-backward-count-nested-close-tag name nested-count)))))
+            ;;(setq nested-count (auto-rename-tag-backward-count-nested-close-tag name nested-count))
+            )))
       nested-count)))
 
 (defun auto-rename-tag-forward-count-nested-open-tag (name &optional nc)
@@ -242,7 +263,7 @@ NC : recursive nested count."
             (backward-char 1)))
         (setq current-word (thing-at-point 'word))
 
-        ;; Ensure current-word/name is something other than nil.
+        ;; Ensure `current-word'/name is something other than nil.
         (when (not current-word)
           (setq current-word ""))
         (when (not name)
@@ -272,22 +293,25 @@ END : end of the changes."
 
   (when (auto-rename-tag-inside-tag)
     (save-excursion
-      ;; Set active flag.
-      (setq auto-rename-tag-pre-command-actived t)
+      (let ((is-end-tag nil))
+        ;; Set active flag.
+        (setq auto-rename-tag-pre-command-actived t)
 
-      ;; Record it down.
-      (if (auto-rename-tag-current-char-equal-p "<")
-          (setq auto-rename-tag-record-prev-word (thing-at-point 'word))
-        (progn
-          (auto-rename-tag-backward-goto-char "<")
+        ;; Record it down.
+        (when (not (auto-rename-tag-current-char-equal-p "<"))
+          (auto-rename-tag-backward-goto-char "<"))
+        (forward-char 1)
 
-          (while (and (not (auto-rename-tag-is-end-of-buffer-p))
-                      ;; Is the word, nil?
-                      (not (thing-at-point 'word)))
-            (forward-char 1))
+        (when is-end-tag
+          (forward-char 1)
+          ;; If end of tag, go back then.
+          (when (not (auto-rename-tag-inside-tag))
+            (backward-char 1)))
+        (setq auto-rename-tag-record-prev-word (thing-at-point 'word))
 
-          ;; Get the first word in the tag.
-          (setq auto-rename-tag-record-prev-word (thing-at-point 'word)))))))
+        ;; Ensure `auto-rename-tag-record-prev-word' is something other than nil.
+        (when (not auto-rename-tag-record-prev-word)
+          (setq auto-rename-tag-record-prev-word ""))))))
 
 (defun auto-rename-tag-after-change-function (begin end length)
   "Do stuff after buffer is changed.
@@ -338,16 +362,18 @@ LENGTH : deletion length."
                 ;; Get the tag name and ready to be compare.
                 (setq pair-tag-word (thing-at-point 'word))
 
-                (message "PTW: %s" pair-tag-word)
+                ;; Ensure `pair-tag-word' is something other than nil.
+                (when (not pair-tag-word)
+                  (setq pair-tag-word ""))
 
                 (when (string= auto-rename-tag-record-prev-word pair-tag-word)
                   ;; Delete the pair word.
-                  ;;(auto-rename-tag-delete-word 1)
-                  (insert "o")
+                  (if (string= pair-tag-word "")
+                      (forward-char 1)
+                    (auto-rename-tag-delete-word 1))
 
                   ;; Insert new word.
-                  ;;(insert current-word)
-                  ))
+                  (insert current-word)))
             ;; Is opening tag.
             (progn
               ;; Get nested count.
@@ -366,9 +392,15 @@ LENGTH : deletion length."
               ;; Get the tag name and ready to be compare.
               (setq pair-tag-word (thing-at-point 'word))
 
+              ;; Ensure `pair-tag-word' is something other than nil.
+              (when (not pair-tag-word)
+                (setq pair-tag-word ""))
+
               (when (string= auto-rename-tag-record-prev-word pair-tag-word)
                 ;; Delete the pair word.
-                (auto-rename-tag-delete-word 1)
+                (if (string= pair-tag-word "")
+                    (forward-char 1)
+                  (auto-rename-tag-delete-word 1))
 
                 ;; Insert new word.
                 (insert current-word)))))))))
