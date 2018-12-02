@@ -135,8 +135,44 @@ If not found, return -1."
               (not (auto-rename-tag-inside-tag)))
     (auto-rename-tag-forward-goto-char "<")))
 
+(defun auto-rename-tag-goto-backward-tag-name (name)
+  "Goto the backward tag name 'NAME'."
+  (let ((is-end-tag nil)
+        (current-word ""))
+    (auto-rename-tag-goto-backward-tag)
+    (forward-char 1)
+
+    (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
+    (when is-end-tag
+      (forward-char 1))
+    (setq current-word (thing-at-point 'word))
+
+    (if current-word
+        (if (not (string= current-word name))
+            (auto-rename-tag-goto-backward-tag-name name)
+          (backward-char 1))
+      (auto-rename-tag-goto-backward-tag-name name))))
+
+(defun auto-rename-tag-goto-forward-tag-name (name)
+  "Goto the forward tag name 'NAME'."
+  (let ((is-end-tag nil)
+        (current-word ""))
+    (auto-rename-tag-goto-forward-tag)
+    (forward-char 1)
+
+    (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
+    (when is-end-tag
+      (forward-char 1))
+    (setq current-word (thing-at-point 'word))
+
+    (if current-word
+        (if (not (string= current-word name))
+            (auto-rename-tag-goto-forward-tag-name name)
+          (backward-char 1))
+      (auto-rename-tag-goto-forward-tag-name name))))
+
 (defun auto-rename-tag-backward-count-nested-close-tag (w &optional nc)
-  "Search backward, returns the count of the nested closing tag.
+  "Search backward, return the count of the nested closing tag.
 W : target word/tag name to check nested.
 NC : recursive nested count."
   (save-excursion
@@ -168,7 +204,7 @@ NC : recursive nested count."
       nested-count)))
 
 (defun auto-rename-tag-forward-count-nested-open-tag (w &optional nc)
-  "Search forward, returns the count of the nested opening tag.
+  "Search forward, return the count of the nested opening tag.
 W : target word/tag name to check nested.
 NC : recursive nested count."
   (save-excursion
@@ -203,7 +239,9 @@ NC : recursive nested count."
 (defun okay-test ()
   (interactive)
   ;;(message "some : %s" (auto-rename-tag-backward-count-nested-close-tag "div"))
-  (message "some : %s" (auto-rename-tag-forward-count-nested-open-tag "div"))
+  ;;(message "some : %s" (auto-rename-tag-forward-count-nested-open-tag "div"))
+  (auto-rename-tag-goto-backward-tag-name "div")
+  ;;(auto-rename-tag-goto-forward-tag-name "div")
   )
 
 
