@@ -316,7 +316,8 @@ END : end of the changes."
   ;; Reset flag.
   (setq auto-rename-tag-pre-command-actived nil)
 
-  (when (auto-rename-tag-inside-tag)
+  (when (and (not undo-in-progress)
+             (auto-rename-tag-inside-tag))
     (save-excursion
       (let ((is-end-tag nil))
         ;; Set active flag.
