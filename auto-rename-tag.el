@@ -151,7 +151,10 @@ If not found, return -1."
         (if (not (string= current-word name))
             (auto-rename-tag-goto-backward-tag-name name)
           (backward-char 1))
-      (auto-rename-tag-goto-backward-tag-name name))))
+      (if (or (not name)  ;; If, nil.
+              (string= name ""))
+          (backward-char 1)
+        (auto-rename-tag-goto-backward-tag-name name)))))
 
 (defun auto-rename-tag-goto-forward-tag-name (name)
   "Goto the forward tag name 'NAME'."
@@ -169,11 +172,14 @@ If not found, return -1."
         (if (not (string= current-word name))
             (auto-rename-tag-goto-forward-tag-name name)
           (backward-char 1))
-      (auto-rename-tag-goto-forward-tag-name name))))
+      (if (or (not name)  ;; If, nil.
+              (string= name ""))
+          (backward-char 1)
+        (auto-rename-tag-goto-forward-tag-name name)))))
 
-(defun auto-rename-tag-backward-count-nested-close-tag (w &optional nc)
+(defun auto-rename-tag-backward-count-nested-close-tag (name &optional nc)
   "Search backward, return the count of the nested closing tag.
-W : target word/tag name to check nested.
+NAME : target word/tag name to check nested.
 NC : recursive nested count."
   (save-excursion
     (let ((nested-count 0)
@@ -183,29 +189,38 @@ NC : recursive nested count."
         (setq nested-count nc))
 
       (auto-rename-tag-goto-backward-tag)
-      (forward-char 1)
 
-      (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
-      (when is-end-tag
-        (forward-char 1))
-      (setq current-word (thing-at-point 'word))
+      (when (not (auto-rename-tag-is-beginning-of-buffer-p))
+        (forward-char 1)
 
-      (when current-word
+        (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
+        (when is-end-tag
+          (forward-char 1))
+        ;; If outside of tag, go back then.
+        (when (not (auto-rename-tag-inside-tag))
+          (backward-char 1))
+        (setq current-word (thing-at-point 'word))
+
+        ;; Ensure current-word/name is something other than nil.
+        (when (not current-word)
+          (setq current-word ""))
+        (when (not name)
+          (setq name ""))
+
         ;; If closing tag.
         (if is-end-tag
             (progn
-              (when (string= current-word w)
+              (when (string= current-word name)
                 (setq nested-count (+ nested-count 1)))
-              (setq nested-count (auto-rename-tag-backward-count-nested-close-tag w nested-count)))
+              (setq nested-count (auto-rename-tag-backward-count-nested-close-tag name nested-count)))
           ;; If opening tag.
-          (progn
-            (unless (string= current-word w)
-              (setq nested-count (auto-rename-tag-backward-count-nested-close-tag w nested-count))))))
+          (when (not (string= current-word name))
+            (setq nested-count (auto-rename-tag-backward-count-nested-close-tag name nested-count)))))
       nested-count)))
 
-(defun auto-rename-tag-forward-count-nested-open-tag (w &optional nc)
+(defun auto-rename-tag-forward-count-nested-open-tag (name &optional nc)
   "Search forward, return the count of the nested opening tag.
-W : target word/tag name to check nested.
+NAME : target word/tag name to check nested.
 NC : recursive nested count."
   (save-excursion
     (let ((nested-count 0)
@@ -215,40 +230,34 @@ NC : recursive nested count."
         (setq nested-count nc))
 
       (auto-rename-tag-goto-forward-tag)
-      (forward-char 1)
 
-      (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
-      (when is-end-tag
-        (forward-char 1))
-      (setq current-word (thing-at-point 'word))
+      (when (not (auto-rename-tag-is-end-of-buffer-p))
+        (forward-char 1)
 
-      (when current-word
+        (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
+        (when is-end-tag
+          (forward-char 1)
+          ;; If end of tag, go back then.
+          (when (not (auto-rename-tag-inside-tag))
+            (backward-char 1)))
+        (setq current-word (thing-at-point 'word))
+
+        ;; Ensure current-word/name is something other than nil.
+        (when (not current-word)
+          (setq current-word ""))
+        (when (not name)
+          (setq name ""))
+
         ;; If closing tag.
         (if is-end-tag
-            (progn
-              (unless (string= current-word w)
-              (setq nested-count (auto-rename-tag-forward-count-nested-open-tag w nested-count))))
+            (when (not (string= current-word name))
+              (setq nested-count (auto-rename-tag-forward-count-nested-open-tag name nested-count)))
           ;; If opening tag.
           (progn
-            (when (string= current-word w)
+            (when (string= current-word name)
               (setq nested-count (+ nested-count 1)))
-            (setq nested-count (auto-rename-tag-forward-count-nested-open-tag w nested-count)))))
+            (setq nested-count (auto-rename-tag-forward-count-nested-open-tag name nested-count)))))
       nested-count)))
-
-
-(defun okay-test ()
-  (interactive)
-  ;;(message "some : %s" (auto-rename-tag-backward-count-nested-close-tag "div"))
-  ;;(message "some : %s" (auto-rename-tag-forward-count-nested-open-tag "div"))
-  ;;(auto-rename-tag-goto-backward-tag-name "div")
-  ;;(auto-rename-tag-goto-forward-tag-name "div")
-
-  (let ((nested-count 2))
-    (while (not (= nested-count 0))
-      (setq nested-count (- nested-count 1))
-      (auto-rename-tag-goto-forward-tag-name "div")
-      (auto-rename-tag-goto-forward-tag-name "div")))
-  )
 
 
 (defun auto-rename-tag-before-change-functions (begin end)
@@ -329,12 +338,16 @@ LENGTH : deletion length."
                 ;; Get the tag name and ready to be compare.
                 (setq pair-tag-word (thing-at-point 'word))
 
+                (message "PTW: %s" pair-tag-word)
+
                 (when (string= auto-rename-tag-record-prev-word pair-tag-word)
                   ;; Delete the pair word.
-                  (auto-rename-tag-delete-word 1)
+                  ;;(auto-rename-tag-delete-word 1)
+                  (insert "o")
 
                   ;; Insert new word.
-                  (insert current-word)))
+                  ;;(insert current-word)
+                  ))
             ;; Is opening tag.
             (progn
               ;; Get nested count.
