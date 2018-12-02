@@ -306,23 +306,6 @@ DNC : duplicate nested count."
       nested-count)))
 
 
-(defun okay-test ()
-  (interactive)
-  (message "BC : %s" (auto-rename-tag-backward-count-nested-close-tag "div"))
-  (message "FO : %s" (auto-rename-tag-forward-count-nested-open-tag "div"))
-  ;;(auto-rename-tag-goto-backward-tag-name "div")
-  ;;(auto-rename-tag-goto-forward-tag-name "div")
-
-  ;; (let ((nested-count 2))
-  ;;   (while (not (= nested-count 0))
-  ;;     (setq nested-count (- nested-count 1))
-  ;;     (auto-rename-tag-goto-forward-tag-name "")
-  ;;     (auto-rename-tag-goto-forward-tag-name "")))
-
-  ;;(auto-rename-tag-goto-backward-tag-name "")
-  )
-
-
 (defun auto-rename-tag-before-change-functions (begin end)
   "Do stuff before buffer is changed.
 BEGIN : beginning of the changes.
