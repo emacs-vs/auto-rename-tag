@@ -240,8 +240,14 @@ NC : recursive nested count."
   (interactive)
   ;;(message "some : %s" (auto-rename-tag-backward-count-nested-close-tag "div"))
   ;;(message "some : %s" (auto-rename-tag-forward-count-nested-open-tag "div"))
-  (auto-rename-tag-goto-backward-tag-name "div")
+  ;;(auto-rename-tag-goto-backward-tag-name "div")
   ;;(auto-rename-tag-goto-forward-tag-name "div")
+
+  (let ((nested-count 2))
+    (while (not (= nested-count 0))
+      (setq nested-count (- nested-count 1))
+      (auto-rename-tag-goto-forward-tag-name "div")
+      (auto-rename-tag-goto-forward-tag-name "div")))
   )
 
 
@@ -283,7 +289,7 @@ LENGTH : deletion length."
              (auto-rename-tag-inside-tag))
     (save-excursion
       (let ((first-char-point-in-tag -1)
-            (end-tag nil)
+            (is-end-tag nil)
             (current-word "")
             (pair-tag-word "")
             (nested-count 0))
@@ -294,7 +300,7 @@ LENGTH : deletion length."
 
         (cond ((auto-rename-tag-current-char-equal-p "/")
                ;; If the first char is '/', meaning is the end tag.
-               (setq end-tag t))
+               (setq is-end-tag t))
               ((auto-rename-tag-current-char-equal-p ">")
                ;; If this is true, meaning the tag is empty.
                (backward-char 1)))
@@ -304,37 +310,48 @@ LENGTH : deletion length."
           (setq current-word (thing-at-point 'word)))
 
         (when (not (string= current-word auto-rename-tag-record-prev-word))
-          (if end-tag
+          ;; Is closing tag.
+          (if is-end-tag
               (progn
                 ;; Get nested count.
                 (setq nested-count
                       (auto-rename-tag-backward-count-nested-close-tag auto-rename-tag-record-prev-word))
 
-                (while (and (not (auto-rename-tag-is-beginning-of-buffer-p))
-                            (not (string= auto-rename-tag-record-prev-word pair-tag-word)))
-                  (auto-rename-tag-goto-backward-tag)
-                  (setq pair-tag-word (thing-at-point 'word)))
+                ;; Resolve nested.
+                (while (not (= nested-count 0))
+                  (setq nested-count (- nested-count 1))
+                  (auto-rename-tag-goto-backward-tag-name auto-rename-tag-record-prev-word)
+                  (auto-rename-tag-goto-backward-tag-name auto-rename-tag-record-prev-word))
+
+                ;; Goto the target pair.
+                (auto-rename-tag-goto-backward-tag-name auto-rename-tag-record-prev-word)
+
+                ;; Get the tag name and ready to be compare.
+                (setq pair-tag-word (thing-at-point 'word))
 
                 (when (string= auto-rename-tag-record-prev-word pair-tag-word)
-                  (forward-char 1)
-
                   ;; Delete the pair word.
                   (auto-rename-tag-delete-word 1)
 
                   ;; Insert new word.
                   (insert current-word)))
+            ;; Is opening tag.
             (progn
               ;; Get nested count.
               (setq nested-count
                     (auto-rename-tag-forward-count-nested-open-tag auto-rename-tag-record-prev-word))
 
-              (while (and (not (auto-rename-tag-is-end-of-buffer-p))
-                          (not (string= auto-rename-tag-record-prev-word pair-tag-word)))
-                (auto-rename-tag-goto-forward-tag)
-                (when (not (auto-rename-tag-is-end-of-buffer-p))
-                  ;; Escape slash.
-                  (forward-char 1))
-                (setq pair-tag-word (thing-at-point 'word)))
+              ;; Resolve nested.
+              (while (not (= nested-count 0))
+                (setq nested-count (- nested-count 1))
+                (auto-rename-tag-goto-forward-tag-name auto-rename-tag-record-prev-word)
+                (auto-rename-tag-goto-forward-tag-name auto-rename-tag-record-prev-word))
+
+              ;; Goto the target pair.
+              (auto-rename-tag-goto-forward-tag-name auto-rename-tag-record-prev-word)
+
+              ;; Get the tag name and ready to be compare.
+              (setq pair-tag-word (thing-at-point 'word))
 
               (when (string= auto-rename-tag-record-prev-word pair-tag-word)
                 ;; Delete the pair word.
