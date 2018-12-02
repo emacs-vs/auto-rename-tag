@@ -120,16 +120,59 @@ If not found, return -1."
 
 (defun auto-rename-tag-goto-backward-tag ()
   "Goto the backward tag."
+  (when (auto-rename-tag-inside-tag)
+    (auto-rename-tag-backward-goto-char "<")
+    (backward-char 1))
   (while (and (not (auto-rename-tag-is-beginning-of-buffer-p))
               (not (auto-rename-tag-inside-tag)))
     (auto-rename-tag-backward-goto-char "<")))
 
 (defun auto-rename-tag-goto-forward-tag ()
   "Goto the forward tag."
+  (when (auto-rename-tag-inside-tag)
+    (auto-rename-tag-forward-goto-char "<"))
   (while (and (not (auto-rename-tag-is-end-of-buffer-p))
               (not (auto-rename-tag-inside-tag)))
     (auto-rename-tag-forward-goto-char "<")))
 
+(defun auto-rename-tag-backward-count-nested-close-tag (&optional nc)
+  "Search backward, returns the count of the nested closing tag.
+NC : recursive nested count."
+  (save-excursion
+    (let ((nested-count 0))
+      (when nc
+        (setq nested-count nc))
+
+      (auto-rename-tag-goto-backward-tag)
+      (forward-char 1)
+
+      ;; If closing tag.
+      (when (auto-rename-tag-current-char-equal-p "/")
+        (setq nested-count (+ nested-count 1))
+        (setq nested-count (auto-rename-tag-backward-count-nested-close-tag nested-count)))
+      nested-count)))
+
+(defun auto-rename-tag-forward-count-nested-open-tag (&optional nc)
+  "Search forward, returns the count of the nested opening tag.
+NC : recursive nested count."
+  (save-excursion
+    (let ((nested-count 0))
+      (when nc
+        (setq nested-count nc))
+
+      (auto-rename-tag-goto-forward-tag)
+      (forward-char 1)
+
+      ;; If closing tag.
+      (when (not (auto-rename-tag-current-char-equal-p "/"))
+        (setq nested-count (+ nested-count 1))
+        (setq nested-count (auto-rename-tag-forward-count-nested-open-tag nested-count)))
+      nested-count)))
+
+(defun okay-test ()
+  (interactive)
+  (message "some : %s" (auto-rename-tag-forward-count-nested-open-tag))
+  )
 
 (defun auto-rename-tag-before-change-functions (begin end)
   "Do stuff before buffer is changed.
@@ -191,15 +234,10 @@ LENGTH : deletion length."
         (when (not (string= current-word auto-rename-tag-record-prev-word))
           (if end-tag
               (progn
-                ;; First, move out of tag.
-                (auto-rename-tag-backward-goto-char "<")
-                (backward-char 1)
-
                 (while (and (not (auto-rename-tag-is-beginning-of-buffer-p))
                             (not (string= auto-rename-tag-record-prev-word pair-tag-word)))
                   (auto-rename-tag-goto-backward-tag)
-                  (setq pair-tag-word (thing-at-point 'word))
-                  (backward-char 1))
+                  (setq pair-tag-word (thing-at-point 'word)))
 
                 (when (string= auto-rename-tag-record-prev-word pair-tag-word)
                   (forward-char 1)
