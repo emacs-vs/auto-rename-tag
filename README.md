@@ -18,7 +18,7 @@ Or you can just enable in specific buffer you want.
 
 
 ## Screenshot ##
-<img src="./screenshot/auto-rename-tag-demo.gif" width="600" height="192"/>
+<img src="./screenshot/auto-rename-tag-demo.gif" width="600" height="255"/>
 
 
 ## Contribution ##
