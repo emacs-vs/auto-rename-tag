@@ -78,7 +78,7 @@
 
 (defun auto-rename-tag-forward-goto-char (c)
   "Goto forward character match 'C'."
-  (when (not (auto-rename-tag-is-end-of-buffer-p))
+  (unless (auto-rename-tag-is-end-of-buffer-p)
     (forward-char 1))
   (while (and (not (auto-rename-tag-is-end-of-buffer-p))
               (not (auto-rename-tag-current-char-equal-p c)))
@@ -141,21 +141,21 @@ If not found, return -1."
         (current-word ""))
     (auto-rename-tag-goto-backward-tag)
 
-    (when (not (auto-rename-tag-is-beginning-of-buffer-p))
+    (unless (auto-rename-tag-is-beginning-of-buffer-p)
       (forward-char 1)
 
       (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
       (when is-end-tag
         (forward-char 1))
       ;; If outside of tag, go back then.
-      (when (not (auto-rename-tag-inside-tag))
+      (unless (auto-rename-tag-inside-tag)
         (backward-char 1))
       (setq current-word (thing-at-point 'word))
 
       ;; Ensure `current-word'/name is something other than nil.
-      (when (not current-word)
+      (unless current-word
         (setq current-word ""))
-      (when (not name)
+      (unless name
         (setq name ""))
 
       (if current-word
@@ -172,21 +172,21 @@ If not found, return -1."
         (current-word ""))
     (auto-rename-tag-goto-forward-tag)
 
-    (when (not (auto-rename-tag-is-end-of-buffer-p))
+    (unless (auto-rename-tag-is-end-of-buffer-p)
       (forward-char 1)
 
       (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
       (when is-end-tag
         (forward-char 1)
         ;; If end of tag, go back then.
-        (when (not (auto-rename-tag-inside-tag))
+        (unless (auto-rename-tag-inside-tag)
           (backward-char 1)))
       (setq current-word (thing-at-point 'word))
 
       ;; Ensure `current-word'/name is something other than nil.
-      (when (not current-word)
+      (unless current-word
         (setq current-word ""))
-      (when (not name)
+      (unless name
         (setq name ""))
 
       (if current-word
@@ -214,21 +214,21 @@ DNC : duplicate nested count."
 
       (auto-rename-tag-goto-backward-tag)
 
-      (when (not (auto-rename-tag-is-beginning-of-buffer-p))
+      (unless (auto-rename-tag-is-beginning-of-buffer-p)
         (forward-char 1)
 
         (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
         (when is-end-tag
           (forward-char 1))
         ;; If outside of tag, go back then.
-        (when (not (auto-rename-tag-inside-tag))
+        (unless (auto-rename-tag-inside-tag)
           (backward-char 1))
         (setq current-word (thing-at-point 'word))
 
         ;; Ensure `current-word'/name is something other than nil.
-        (when (not current-word)
+        (unless current-word
           (setq current-word ""))
-        (when (not name)
+        (unless name
           (setq name ""))
 
         ;; If closing tag.
@@ -242,7 +242,7 @@ DNC : duplicate nested count."
                                                                      nested-count
                                                                      dup-nested-count)))
           ;; If opening tag.
-          (when (not (= dup-nested-count 0))
+          (unless (= dup-nested-count 0)
             (when (string= current-word name)
               (setq dup-nested-count (- dup-nested-count 1))
               (setq nested-count
@@ -268,26 +268,26 @@ DNC : duplicate nested count."
 
       (auto-rename-tag-goto-forward-tag)
 
-      (when (not (auto-rename-tag-is-end-of-buffer-p))
+      (unless (auto-rename-tag-is-end-of-buffer-p)
         (forward-char 1)
 
         (setq is-end-tag (auto-rename-tag-current-char-equal-p "/"))
         (when is-end-tag
           (forward-char 1)
           ;; If end of tag, go back then.
-          (when (not (auto-rename-tag-inside-tag))
+          (unless (auto-rename-tag-inside-tag)
             (backward-char 1)))
         (setq current-word (thing-at-point 'word))
 
         ;; Ensure `current-word'/name is something other than nil.
-        (when (not current-word)
+        (unless current-word
           (setq current-word ""))
-        (when (not name)
+        (unless name
           (setq name ""))
 
         ;; If closing tag.
         (if is-end-tag
-            (when (not (= dup-nested-count 0))
+            (unless (= dup-nested-count 0)
               (when (string= current-word name)
                 (setq dup-nested-count (- dup-nested-count 1))
                 (setq nested-count
@@ -324,19 +324,19 @@ END : end of the changes."
         (setq auto-rename-tag-pre-command-actived t)
 
         ;; Record it down.
-        (when (not (auto-rename-tag-current-char-equal-p "<"))
+        (unless (auto-rename-tag-current-char-equal-p "<")
           (auto-rename-tag-backward-goto-char "<"))
         (forward-char 1)
 
         (when is-end-tag
           (forward-char 1)
           ;; If end of tag, go back then.
-          (when (not (auto-rename-tag-inside-tag))
+          (unless (auto-rename-tag-inside-tag)
             (backward-char 1)))
         (setq auto-rename-tag-record-prev-word (thing-at-point 'word))
 
         ;; Ensure `auto-rename-tag-record-prev-word' is something other than nil.
-        (when (not auto-rename-tag-record-prev-word)
+        (unless auto-rename-tag-record-prev-word
           (setq auto-rename-tag-record-prev-word ""))))))
 
 (defun auto-rename-tag-after-change-function (begin end length)
@@ -368,7 +368,7 @@ LENGTH : deletion length."
         (when (thing-at-point 'word)
           (setq current-word (thing-at-point 'word)))
 
-        (when (not (string= current-word auto-rename-tag-record-prev-word))
+        (unless (string= current-word auto-rename-tag-record-prev-word)
           ;; Is closing tag.
           (if is-end-tag
               (progn
@@ -389,7 +389,7 @@ LENGTH : deletion length."
                 (setq pair-tag-word (thing-at-point 'word))
 
                 ;; Ensure `pair-tag-word' is something other than nil.
-                (when (not pair-tag-word)
+                (unless pair-tag-word
                   (setq pair-tag-word ""))
 
                 (when (string= auto-rename-tag-record-prev-word pair-tag-word)
@@ -419,7 +419,7 @@ LENGTH : deletion length."
               (setq pair-tag-word (thing-at-point 'word))
 
               ;; Ensure `pair-tag-word' is something other than nil.
-              (when (not pair-tag-word)
+              (unless pair-tag-word
                 (setq pair-tag-word ""))
 
               (when (string= auto-rename-tag-record-prev-word pair-tag-word)
