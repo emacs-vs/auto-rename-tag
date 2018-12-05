@@ -16,7 +16,7 @@ Or you can just enable in specific buffer you want.
 (auto-rename-tag-mode t)
 ```
 
-
+x
 ## Screenshot ##
 <img src="./screenshot/auto-rename-tag-demo.gif" width="600" height="255"/>
 
