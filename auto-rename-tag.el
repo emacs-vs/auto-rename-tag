@@ -102,10 +102,6 @@ If not found, return -1."
         (point)
       -1)))
 
-(defun auto-rename-tag-get-current-char-string ()
-  "Get the current character as the 'string'."
-  (string (char-before)))
-
 (defun auto-rename-tag-inside-tag ()
   "Check if current point inside the tag."
   (let ((backward-less (auto-rename-tag-backward-char-at-point "<"))
