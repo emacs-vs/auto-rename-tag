@@ -206,7 +206,7 @@ DNC : duplicate nested count."
       (when nc
         (setq nested-count nc))
       (when dnc
-        (setq dup-nested-count nc))
+        (setq dup-nested-count dnc))
 
       (auto-rename-tag-goto-backward-tag)
 
@@ -232,19 +232,15 @@ DNC : duplicate nested count."
             (progn
               (when (string= current-word name)
                 (setq nested-count (+ nested-count 1))
-                (setq dup-nested-count (+ dup-nested-count 1)))
-              (setq nested-count
-                    (auto-rename-tag-backward-count-nested-close-tag name
-                                                                     nested-count
-                                                                     dup-nested-count)))
+                (setq dup-nested-count (+ dup-nested-count 1))))
           ;; If opening tag.
           (unless (= dup-nested-count 0)
             (when (string= current-word name)
-              (setq dup-nested-count (- dup-nested-count 1))
-              (setq nested-count
-                    (auto-rename-tag-backward-count-nested-close-tag name
-                                                                     nested-count
-                                                                     dup-nested-count))))))
+              (setq dup-nested-count (- dup-nested-count 1)))))
+        (setq nested-count
+              (auto-rename-tag-backward-count-nested-close-tag name
+                                                               nested-count
+                                                               dup-nested-count)))
       nested-count)))
 
 (defun auto-rename-tag-forward-count-nested-open-tag (name &optional nc dnc)
