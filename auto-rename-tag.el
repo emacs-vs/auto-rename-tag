@@ -36,7 +36,7 @@
   "Automatically rename paired HTML/XML tag."
   :prefix "auto-rename-tag-"
   :group 'tool
-  :link '(url-link :tag "Repository" "https://github.com/jcs090218/auto-rename-tag.git"))
+  :link '(url-link :tag "Repository" "https://github.com/jcs090218/auto-rename-tag"))
 
 
 (defvar auto-rename-tag-pre-command-actived nil
