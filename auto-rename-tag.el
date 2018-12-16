@@ -435,6 +435,7 @@ LENGTH : deletion length."
   (remove-hook 'after-change-functions #'auto-rename-tag-after-change-function t))
 
 
+;;;###autoload
 (define-minor-mode auto-rename-tag-mode
   "Minor mode 'auto-rename-tag' mode."
   :lighter " ART"
@@ -447,6 +448,7 @@ LENGTH : deletion length."
   "Turn on the 'auto-rename-tag-mode' minor mode."
   (auto-rename-tag-mode 1))
 
+;;;###autoload
 (define-globalized-minor-mode global-auto-rename-tag-mode
   auto-rename-tag-mode auto-rename-tag-turn-on-auto-rename-tag-mode
   :require 'auto-rename-tag)
