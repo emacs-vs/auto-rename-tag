@@ -10,11 +10,11 @@ Automatically rename paired HTML/XML tag. <br/><br/>
 
 ## Usage ##
 Enable for all buffers.
-```
+```el
 (global-auto-rename-tag-mode t)
 ```
 Or you can just enable in specific buffer you want.
-```
+```el
 (auto-rename-tag-mode t)
 ```
 
