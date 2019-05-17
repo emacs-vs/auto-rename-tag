@@ -3,12 +3,15 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 
-# auto-rename-tag #
+# auto-rename-tag
+> Automatically rename paired HTML/XML tag.
 
-Automatically rename paired HTML/XML tag.
+<p align="center">
+  <img src="./screenshot/auto-rename-tag-demo.gif" width="600" height="255"/>
+</p>
 
 
-## Usage ##
+## Usage
 Enable for all buffers.
 ```el
 (global-auto-rename-tag-mode t)
@@ -19,11 +22,7 @@ Or you can just enable in specific buffer you want.
 ```
 
 
-## Screenshot ##
-<img src="./screenshot/auto-rename-tag-demo.gif" width="600" height="255"/>
-
-
-## Contribution ##
+## Contribution
 If you would like to contribute to this project, you may either 
 clone and make pull requests to this repository. Or you can 
 clone the project and establish your own branch of this tool. 
