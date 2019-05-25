@@ -180,7 +180,8 @@ If not found, return -1."
           (backward-char 1)))
 
       (save-excursion
-        (backward-char 1)
+        (unless (auto-rename-tag-current-char-equal-p "/")
+          (backward-char 1))
         (setq current-word (auto-rename-tag-get-tag-name-at-point)))
 
       ;; Ensure `current-word'/name is something other than nil.
@@ -325,6 +326,8 @@ DNC : duplicate nested count."
         (auto-rename-tag-goto-the-end-of-tag-name)
         (setq tag-end (point))
         (setq tag-name (buffer-substring-no-properties tag-start tag-end))))
+    (when (string= tag-name "/")
+      (setq tag-name ""))
     tag-name))
 
 
@@ -361,6 +364,9 @@ END : end of the changes."
         (save-excursion
           (backward-char 1)
           (setq auto-rename-tag-record-prev-word (auto-rename-tag-get-tag-name-at-point)))
+
+        (when (string= auto-rename-tag-record-prev-word "/")
+          (setq auto-rename-tag-record-prev-word ""))
 
         ;; Ensure `auto-rename-tag-record-prev-word' is something other than nil.
         (unless auto-rename-tag-record-prev-word
@@ -420,8 +426,7 @@ LENGTH : deletion length."
 
                 (when (string= auto-rename-tag-record-prev-word pair-tag-word)
                   ;; Delete the pair word.
-                  (if (string= pair-tag-word "")
-                      (forward-char 1)
+                  (unless (string= pair-tag-word "")
                     (auto-rename-tag-delete-tag-name))
 
                   ;; Insert new word.
