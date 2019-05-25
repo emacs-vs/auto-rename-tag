@@ -313,6 +313,7 @@ DNC : duplicate nested count."
   (while (and (not (auto-rename-tag-is-end-of-buffer-p))
               (not (auto-rename-tag-current-char-equal-p " "))
               (not (auto-rename-tag-current-char-equal-p "\t"))
+              (not (auto-rename-tag-current-char-equal-p "\n"))
               (not (auto-rename-tag-current-char-equal-p ">")))
     (forward-char 1))
   (backward-char 1))
