@@ -6,7 +6,7 @@
 ;; Author: Shen, Jen-Chieh <jcs090218@gmail.com>
 ;; Description: Automatically rename paired HTML/XML tag.
 ;; Keyword: auto-complete html rename tag xml
-;; Version: 0.0.3
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://github.com/jcs090218/auto-rename-tag
 
@@ -263,7 +263,8 @@ DNC : duplicate nested count."
 
 (defun auto-rename-tag--goto-the-end-of-tag-name ()
   "Goto the end of the tag name, in order to get the name of the tag."
-  (re-search-forward "[^>]*" nil t))
+  (re-search-backward "[<]" nil t)
+  (re-search-forward "[^> \t\n]*" nil t))
 
 (defun auto-rename-tag--tag-name-start-pt ()
   "Return the point at the start of the tag name."
@@ -288,7 +289,7 @@ DNC : duplicate nested count."
     tag-name))
 
 
-(defun auto-rename-tag--before-change-functions (begin end)
+(defun auto-rename-tag--before-change-functions (_begin _end)
   "Do stuff before buffer is changed.
 BEGIN : beginning of the changes.
 END : end of the changes."
@@ -312,7 +313,7 @@ END : end of the changes."
       (unless auto-rename-tag--record-prev-word
         (setq auto-rename-tag--record-prev-word "")))))
 
-(defun auto-rename-tag--after-change-function (begin end length)
+(defun auto-rename-tag--after-change-function (_begin _end _length)
   "Do stuff after buffer is changed.
 BEGIN : beginning of the changes.
 END : end of the changes.
@@ -329,72 +330,64 @@ LENGTH : deletion length."
 
         (setq current-word (auto-rename-tag--get-tag-name-at-point))
 
-        (message "cw: %s" current-word)
-        (message "ar: %s" auto-rename-tag--record-prev-word)
-
         (unless (string= current-word auto-rename-tag--record-prev-word)
           ;; NOTE: Is closing tag.
-          (if is-end-tag
-              (progn
-                ;; Get nested count.
-                (setq nested-count
-                      (auto-rename-tag--backward-count-nested-close-tag auto-rename-tag--record-prev-word))
+          (when is-end-tag
+            ;; Get nested count.
+            (setq nested-count
+                  (auto-rename-tag--backward-count-nested-close-tag auto-rename-tag--record-prev-word))
 
-                (message "nc: %s" nested-count)
-                (message "aac: %s" auto-rename-tag--record-prev-word)
+            ;; Resolve nested.
+            (while (not (= nested-count 0))
+              (setq nested-count (- nested-count 1))
+              (auto-rename-tag--goto-backward-tag-name auto-rename-tag--record-prev-word)
+              (auto-rename-tag--goto-backward-tag-name auto-rename-tag--record-prev-word))
 
-                ;; Resolve nested.
-                (while (not (= nested-count 0))
-                  (setq nested-count (- nested-count 1))
-                  (auto-rename-tag--goto-backward-tag-name auto-rename-tag--record-prev-word)
-                  (auto-rename-tag--goto-backward-tag-name auto-rename-tag--record-prev-word))
+            ;; Goto the target pair.
+            (auto-rename-tag--goto-backward-tag-name auto-rename-tag--record-prev-word)
 
-                ;; Goto the target pair.
-                (auto-rename-tag--goto-backward-tag-name auto-rename-tag--record-prev-word)
+            ;; Get the tag name and ready to be compare.
+            (setq pair-tag-word (auto-rename-tag--get-tag-name-at-point))
 
-                ;; Get the tag name and ready to be compare.
-                (setq pair-tag-word (auto-rename-tag--get-tag-name-at-point))
+            ;; Ensure `pair-tag-word' is something other than nil.
+            (unless pair-tag-word (setq pair-tag-word ""))
 
-                ;; Ensure `pair-tag-word' is something other than nil.
-                (unless pair-tag-word (setq pair-tag-word ""))
+            (when (string= auto-rename-tag--record-prev-word pair-tag-word)
+              ;; Delete the pair word.
+              (unless (string= pair-tag-word "")
+                (auto-rename-tag--delete-tag-name))
+              ;; Insert new word.
+              (insert current-word)))
 
-                (message "ptw: %s" pair-tag-word)
+          ;; NOTE: Is opening tag.
+          (unless is-end-tag
+            ;; Get nested count.
+            (setq nested-count
+                  (auto-rename-tag--forward-count-nested-open-tag auto-rename-tag--record-prev-word))
 
-                (when (string= auto-rename-tag--record-prev-word pair-tag-word)
-                  ;; Delete the pair word.
-                  (unless (string= pair-tag-word "")
-                    (auto-rename-tag--delete-tag-name))
-                  ;; Insert new word.
-                  (insert current-word)))
-            ;; NOTE: Is opening tag.
-            (progn
-              ;; Get nested count.
-              (setq nested-count
-                    (auto-rename-tag--forward-count-nested-open-tag auto-rename-tag--record-prev-word))
-
-              ;; Resolve nested.
-              (while (not (= nested-count 0))
-                (setq nested-count (- nested-count 1))
-                (auto-rename-tag--goto-forward-tag-name auto-rename-tag--record-prev-word)
-                (auto-rename-tag--goto-forward-tag-name auto-rename-tag--record-prev-word))
-
-              ;; Goto the target pair.
+            ;; Resolve nested.
+            (while (not (= nested-count 0))
+              (setq nested-count (- nested-count 1))
               (auto-rename-tag--goto-forward-tag-name auto-rename-tag--record-prev-word)
+              (auto-rename-tag--goto-forward-tag-name auto-rename-tag--record-prev-word))
 
-              (ignore-errors (forward-char 1))
+            ;; Goto the target pair.
+            (auto-rename-tag--goto-forward-tag-name auto-rename-tag--record-prev-word)
 
-              ;; Get the tag name and ready to be compare.
-              (setq pair-tag-word (auto-rename-tag--get-tag-name-at-point))
+            (ignore-errors (forward-char 1))
 
-              ;; Ensure `pair-tag-word' is something other than nil.
-              (unless pair-tag-word (setq pair-tag-word ""))
+            ;; Get the tag name and ready to be compare.
+            (setq pair-tag-word (auto-rename-tag--get-tag-name-at-point))
 
-              (when (string= auto-rename-tag--record-prev-word pair-tag-word)
-                ;; Delete the pair word.
-                (unless (string= pair-tag-word "")
-                  (auto-rename-tag--delete-tag-name))
-                ;; Insert new word.
-                (insert current-word)))))))))
+            ;; Ensure `pair-tag-word' is something other than nil.
+            (unless pair-tag-word (setq pair-tag-word ""))
+
+            (when (string= auto-rename-tag--record-prev-word pair-tag-word)
+              ;; Delete the pair word.
+              (unless (string= pair-tag-word "")
+                (auto-rename-tag--delete-tag-name))
+              ;; Insert new word.
+              (insert current-word))))))))
 
 
 (defun auto-rename-tag--enable ()
