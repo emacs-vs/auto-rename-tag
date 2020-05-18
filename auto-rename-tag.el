@@ -6,7 +6,7 @@
 ;; Author: Shen, Jen-Chieh <jcs090218@gmail.com>
 ;; Description: Automatically rename paired HTML/XML tag.
 ;; Keyword: auto-complete html rename tag xml
-;; Version: 0.1.1
+;; Version: 0.2.0
 ;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://github.com/jcs090218/auto-rename-tag
 
@@ -71,38 +71,6 @@
     (let ((current-char-string (string (char-before))))
       (string= current-char-string c))))
 
-(defun auto-rename-tag--backward-goto-char (c)
-  "Goto backward character match 'C'."
-  (while (and (not (auto-rename-tag--is-beginning-of-buffer-p))
-              (not (auto-rename-tag--current-char-equal-p c)))
-    (backward-char 1)))
-
-(defun auto-rename-tag--forward-goto-char (c)
-  "Goto forward character match 'C'."
-  (unless (auto-rename-tag--is-end-of-buffer-p)
-    (forward-char 1))
-  (while (and (not (auto-rename-tag--is-end-of-buffer-p))
-              (not (auto-rename-tag--current-char-equal-p c)))
-    (forward-char 1)))
-
-(defun auto-rename-tag--backward-char-at-point (c)
-  "Search backward for 'C' and return the point.
-If not found, return -1."
-  (save-excursion
-    (auto-rename-tag--backward-goto-char c)
-    (if (auto-rename-tag--current-char-equal-p c)
-        (point)
-      -1)))
-
-(defun auto-rename-tag--forward-char-at-point (c)
-  "Search forward for 'C' and return the point.
-If not found, return -1."
-  (save-excursion
-    (auto-rename-tag--forward-goto-char c)
-    (if (auto-rename-tag--current-char-equal-p c)
-        (point)
-      -1)))
-
 (defun auto-rename-tag--is-closing-tag-p ()
   "Check if current tag a closing tag."
   (save-excursion
@@ -112,10 +80,14 @@ If not found, return -1."
 
 (defun auto-rename-tag--inside-tag-p ()
   "Check if current point inside the tag."
-  (let ((backward-less (auto-rename-tag--backward-char-at-point "<"))
-        (backward-greater (auto-rename-tag--backward-char-at-point ">"))
-        (forward-less (auto-rename-tag--forward-char-at-point "<"))
-        (forward-greater (auto-rename-tag--forward-char-at-point ">")))
+  (let ((backward-less (save-excursion (search-backward "<" nil t)))
+        (backward-greater (save-excursion (search-backward ">" nil t)))
+        (forward-less (save-excursion (search-forward "<" nil t)))
+        (forward-greater (save-excursion (search-forward ">" nil t))))
+    (unless backward-less (setq backward-less -1))
+    (unless backward-greater (setq backward-greater -1))
+    (unless forward-less (setq forward-less -1))
+    (unless forward-greater (setq forward-greater -1))
     (and (not (= -1 backward-less))
          (not (= -1 forward-greater))
          (< backward-greater backward-less)
