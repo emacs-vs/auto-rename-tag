@@ -181,13 +181,13 @@ DNC : duplicate nested count."
         (unless current-word (setq current-word ""))
         (unless name (setq name ""))
 
-        (unless (string= current-word name)
-          (setq is-end-tag t))
+        ;; Is the tag name aren't the same, we don't count up the nested level.
+        (unless (string= current-word name) (setq is-end-tag t))
 
         ;; If closing tag.
         (when is-end-tag
           (when (string= current-word name)
-            (setq nested-count (+ nested-count 1))
+            (setq nested-count (+ nested-count 1))  ; Count here.
             (setq dup-nested-count (+ dup-nested-count 1)))
           (setq nested-count
                 (auto-rename-tag--backward-count-nested-close-tag
@@ -220,8 +220,8 @@ DNC : duplicate nested count."
         (unless current-word (setq current-word ""))
         (unless name (setq name ""))
 
-        (unless (string= current-word name)
-          (setq is-end-tag nil))
+        ;; Is the tag name aren't the same, we don't count up the nested level.
+        (unless (string= current-word name) (setq is-end-tag nil))
 
         ;; If closing tag.
         (when is-end-tag
@@ -234,7 +234,7 @@ DNC : duplicate nested count."
         ;; If opening tag.
         (unless is-end-tag
           (when (string= current-word name)
-            (setq nested-count (+ nested-count 1))
+            (setq nested-count (+ nested-count 1))    ; Count here.
             (setq dup-nested-count (+ dup-nested-count 1)))
           (setq nested-count
                 (auto-rename-tag--forward-count-nested-open-tag
