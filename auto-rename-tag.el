@@ -7,7 +7,7 @@
 ;; Description: Automatically rename paired HTML/XML tag.
 ;; Keyword: auto-complete html rename tag xml
 ;; Version: 0.2.1
-;; Package-Requires: ((emacs "24.4"))
+;; Package-Requires: ((emacs "24.4") (cl-lib "0.6"))
 ;; URL: https://github.com/jcs090218/auto-rename-tag
 
 ;; This file is NOT part of GNU Emacs.
@@ -31,6 +31,8 @@
 ;;
 
 ;;; Code:
+
+(require 'cl-lib)
 
 (defgroup auto-rename-tag nil
   "Automatically rename paired HTML/XML tag."
@@ -179,6 +181,9 @@ DNC : duplicate nested count."
         (unless current-word (setq current-word ""))
         (unless name (setq name ""))
 
+        (unless (string= current-word name)
+          (setq is-end-tag t))
+
         ;; If closing tag.
         (when is-end-tag
           (when (string= current-word name)
@@ -214,6 +219,9 @@ DNC : duplicate nested count."
         ;; Ensure `current-word'/name is something other than nil.
         (unless current-word (setq current-word ""))
         (unless name (setq name ""))
+
+        (unless (string= current-word name)
+          (setq is-end-tag nil))
 
         ;; If closing tag.
         (when is-end-tag
@@ -296,6 +304,47 @@ DNC : duplicate nested count."
         (setq tag-name (buffer-substring-no-properties tag-start tag-end))))
     tag-name))
 
+(defun auto-rename-tag--resolve-nested (direct)
+  "Resolved nested level by DIRECT.
+DIRECT can be either only 'backward and 'forward."
+  (let ((nested-count 0) (is-closing-tag nil))
+    ;; Get nested count.
+    (setq nested-count
+          (cl-case direct
+            ('backward (auto-rename-tag--backward-count-nested-close-tag auto-rename-tag--record-prev-word))
+            ('forward (auto-rename-tag--forward-count-nested-open-tag auto-rename-tag--record-prev-word))))
+
+    (message "nested-count: %s" nested-count)
+
+    ;; Resolve nested.
+    (while (not (= nested-count 0))
+      (setq nested-count (- nested-count 1))
+      (cl-case direct
+        ('backward
+         (auto-rename-tag--goto-backward-tag-name auto-rename-tag--record-prev-word)
+         (auto-rename-tag--goto-backward-tag-name auto-rename-tag--record-prev-word))
+        ('forward
+         (auto-rename-tag--goto-forward-tag-name auto-rename-tag--record-prev-word)
+         (auto-rename-tag--goto-forward-tag-name auto-rename-tag--record-prev-word))))
+
+    ;; Goto the target pair.
+    (cl-case direct
+      ('backward
+       (auto-rename-tag--goto-backward-tag-name auto-rename-tag--record-prev-word))
+      ('forward
+       (auto-rename-tag--goto-forward-tag-name auto-rename-tag--record-prev-word)
+       (ignore-errors (forward-char 1))))
+
+    (setq is-closing-tag (auto-rename-tag--is-closing-tag-p))
+
+    (message "%s : %s" (point) nested-count)
+
+    (cl-case direct
+      ('backward
+       (when is-closing-tag (auto-rename-tag--resolve-nested direct)))
+      ('forward
+       (unless is-closing-tag (auto-rename-tag--resolve-nested direct))))))
+
 
 (defun auto-rename-tag--before-change-functions (_begin _end)
   "Do stuff before buffer is changed.
@@ -331,8 +380,7 @@ LENGTH : deletion length."
   (when auto-rename-tag--pre-command-actived
     (save-excursion
       (let ((is-end-tag nil)
-            (current-word "") (pair-tag-word "")
-            (nested-count 0))
+            (current-word "") (pair-tag-word ""))
         ;; Goto the first character inside the tag.
         (auto-rename-tag--goto-the-start-of-tag-name)
 
@@ -343,18 +391,7 @@ LENGTH : deletion length."
         (unless (string= current-word auto-rename-tag--record-prev-word)
           ;; NOTE: Is closing tag.
           (when is-end-tag
-            ;; Get nested count.
-            (setq nested-count
-                  (auto-rename-tag--backward-count-nested-close-tag auto-rename-tag--record-prev-word))
-
-            ;; Resolve nested.
-            (while (not (= nested-count 0))
-              (setq nested-count (- nested-count 1))
-              (auto-rename-tag--goto-backward-tag-name auto-rename-tag--record-prev-word)
-              (auto-rename-tag--goto-backward-tag-name auto-rename-tag--record-prev-word))
-
-            ;; Goto the target pair.
-            (auto-rename-tag--goto-backward-tag-name auto-rename-tag--record-prev-word)
+            (auto-rename-tag--resolve-nested 'backward)
 
             ;; Get the tag name and ready to be compare.
             (setq pair-tag-word (auto-rename-tag--get-tag-name-at-point))
@@ -371,20 +408,9 @@ LENGTH : deletion length."
 
           ;; NOTE: Is opening tag.
           (unless is-end-tag
-            ;; Get nested count.
-            (setq nested-count
-                  (auto-rename-tag--forward-count-nested-open-tag auto-rename-tag--record-prev-word))
+            (auto-rename-tag--resolve-nested 'forward)
 
-            ;; Resolve nested.
-            (while (not (= nested-count 0))
-              (setq nested-count (- nested-count 1))
-              (auto-rename-tag--goto-forward-tag-name auto-rename-tag--record-prev-word)
-              (auto-rename-tag--goto-forward-tag-name auto-rename-tag--record-prev-word))
-
-            ;; Goto the target pair.
-            (auto-rename-tag--goto-forward-tag-name auto-rename-tag--record-prev-word)
-
-            (ignore-errors (forward-char 1))
+            (setq is-end-tag (auto-rename-tag--is-closing-tag-p))
 
             ;; Get the tag name and ready to be compare.
             (setq pair-tag-word (auto-rename-tag--get-tag-name-at-point))
