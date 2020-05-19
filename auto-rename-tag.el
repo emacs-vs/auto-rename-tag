@@ -307,7 +307,9 @@ END : end of the changes."
   ;; Reset flag.
   (setq auto-rename-tag--pre-command-actived nil)
 
-  (when (and (not undo-in-progress) (not (auto-rename-tag--self-tag-p)))
+  (when (and (not undo-in-progress)
+             (auto-rename-tag--inside-tag-p)
+             (not (auto-rename-tag--self-tag-p)))
     (save-excursion
       ;; Set active flag.
       (setq auto-rename-tag--pre-command-actived t)
@@ -326,7 +328,7 @@ END : end of the changes."
 BEGIN : beginning of the changes.
 END : end of the changes.
 LENGTH : deletion length."
-  (when (and auto-rename-tag--pre-command-actived (not (auto-rename-tag--self-tag-p)))
+  (when auto-rename-tag--pre-command-actived
     (save-excursion
       (let ((is-end-tag nil)
             (current-word "") (pair-tag-word "")
