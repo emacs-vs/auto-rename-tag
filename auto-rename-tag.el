@@ -94,6 +94,14 @@
          (or (< forward-greater forward-less)
              (= -1 forward-less)))))
 
+(defun auto-rename-tag--self-tag-p ()
+  "Tag that can be use individually."
+  (if (auto-rename-tag--inside-tag-p)
+      (save-excursion
+        (auto-rename-tag--goto-the-start-of-tag-name)
+        (re-search-forward "/[ \t\n]*>" (auto-rename-tag--end-tag-point) t))
+    nil))
+
 (defun auto-rename-tag--goto-backward-tag ()
   "Goto the backward tag."
   (when (auto-rename-tag--inside-tag-p)
@@ -226,6 +234,34 @@ DNC : duplicate nested count."
       nested-count)))
 
 
+(defun auto-rename-tag--start-tag-point ()
+  "Return the point of the tag starting point."
+  (if (auto-rename-tag--inside-tag-p)
+      (save-excursion
+        (search-backward "<" nil t)
+        (point))
+    nil))
+
+(defun auto-rename-tag--end-tag-point ()
+  "Return the point of the tag ending point."
+  (if (auto-rename-tag--inside-tag-p)
+      (save-excursion
+        ;; TODO: There is some logic error about nested level.
+        ;; Yet since, we are only going to use this for checking the
+        ;; self tag. This logic error doesn't necessary has to be resolved!
+        (let ((start-tag-pt (auto-rename-tag--start-tag-point))
+              (nested-start-tag-pt nil))
+          (re-search-forward "[^=][ \t\n]*>" nil t)
+          (forward-char -1)
+          (setq nested-start-tag-pt (auto-rename-tag--start-tag-point))
+          (if (or (null nested-start-tag-pt)
+                  (= start-tag-pt nested-start-tag-pt))
+              (progn
+                (forward-char 1)
+                (point))
+            (auto-rename-tag--end-tag-point))))
+    nil))
+
 (defun auto-rename-tag--goto-the-start-of-tag-name ()
   "Goto the start of the tag name, in order to get the name of the tag."
   (re-search-backward "[<]" nil t)
@@ -271,7 +307,7 @@ END : end of the changes."
   ;; Reset flag.
   (setq auto-rename-tag--pre-command-actived nil)
 
-  (when (and (not undo-in-progress) (auto-rename-tag--inside-tag-p))
+  (when (and (not undo-in-progress) (not (auto-rename-tag--self-tag-p)))
     (save-excursion
       ;; Set active flag.
       (setq auto-rename-tag--pre-command-actived t)
@@ -290,7 +326,7 @@ END : end of the changes."
 BEGIN : beginning of the changes.
 END : end of the changes.
 LENGTH : deletion length."
-  (when (and auto-rename-tag--pre-command-actived (auto-rename-tag--inside-tag-p))
+  (when (and auto-rename-tag--pre-command-actived (not (auto-rename-tag--self-tag-p)))
     (save-excursion
       (let ((is-end-tag nil)
             (current-word "") (pair-tag-word "")
