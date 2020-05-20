@@ -44,7 +44,7 @@
 (defconst auto-rename-tag--tag-regexp "<[^>]*"
   "Tag regular expression to find tag position.")
 
-(defvar-local auto-rename-tag--pre-command-actived nil
+(defvar-local auto-rename-tag--pre-command-activated nil
   "Check if `pre-command-hook' called.")
 
 (defvar-local auto-rename-tag--record-prev-word ""
@@ -345,14 +345,14 @@ DIRECT can be either only 'backward and 'forward."
 (defun auto-rename-tag--before-action ()
   "Before rename core action."
   (setq auto-rename-tag--record-prev-word "")  ; Reset record.
-  (setq auto-rename-tag--pre-command-actived nil)  ; Reset flag.
+  (setq auto-rename-tag--pre-command-activated nil)  ; Reset flag.
 
   (when (and (not undo-in-progress)
              (auto-rename-tag--inside-tag-p)
              (not (auto-rename-tag--self-tag-p)))
     (save-excursion
       ;; Set active flag.
-      (setq auto-rename-tag--pre-command-actived t)
+      (setq auto-rename-tag--pre-command-activated t)
 
       (setq auto-rename-tag--record-prev-word (auto-rename-tag--get-tag-name-at-point))
 
@@ -365,7 +365,7 @@ DIRECT can be either only 'backward and 'forward."
 
 (defun auto-rename-tag--after-action ()
   "After rename core action."
-  (when auto-rename-tag--pre-command-actived
+  (when auto-rename-tag--pre-command-activated
     (save-excursion
       (let ((is-end-tag nil)
             (current-word "") (pair-tag-word ""))
