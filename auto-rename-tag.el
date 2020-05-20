@@ -440,14 +440,5 @@ DIRECT can be either only 'backward and 'forward."
       (auto-rename-tag--enable)
     (auto-rename-tag--disable)))
 
-(defun auto-rename-tag-turn-on-auto-rename-tag-mode ()
-  "Turn on the 'auto-rename-tag-mode' minor mode."
-  (auto-rename-tag-mode 1))
-
-;;;###autoload
-(define-globalized-minor-mode global-auto-rename-tag-mode
-  auto-rename-tag-mode auto-rename-tag-turn-on-auto-rename-tag-mode
-  :require 'auto-rename-tag)
-
 (provide 'auto-rename-tag)
 ;;; auto-rename-tag.el ends here
