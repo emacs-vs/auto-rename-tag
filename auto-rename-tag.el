@@ -259,6 +259,7 @@ DNC : duplicate nested count."
         ;; self tag. This logic error doesn't necessary has to be resolved!
         (let ((start-tag-pt (auto-rename-tag--start-tag-point))
               (nested-start-tag-pt nil))
+          (goto-char start-tag-pt)
           (re-search-forward "[^=][ \t\n]*>" nil t)
           (forward-char -1)
           (setq nested-start-tag-pt (auto-rename-tag--start-tag-point))
@@ -420,22 +421,15 @@ DIRECT can be either only 'backward and 'forward."
   "Do stuff after buffer is changed."
   (auto-rename-tag--after-action))
 
-(defun auto-rename-tag--post-command ()
-  "Do stuff after buffer is changed.
-NOTE: Having this function is for `lsp` display issue with flycheck."
-  (auto-rename-tag--after-action))
-
 (defun auto-rename-tag--enable ()
   "Enable `auto-rename-tag' in current buffer."
   (add-hook 'before-change-functions #'auto-rename-tag--before-change nil t)
-  (add-hook 'after-change-functions #'auto-rename-tag--after-change nil t)
-  (add-hook 'post-command-hook #'auto-rename-tag--post-command nil t))
+  (add-hook 'after-change-functions #'auto-rename-tag--after-change nil t))
 
 (defun auto-rename-tag--disable ()
   "Disable `auto-rename-tag' in current buffer."
   (remove-hook 'before-change-functions #'auto-rename-tag--before-change t)
-  (remove-hook 'after-change-functions #'auto-rename-tag--after-change t)
-  (remove-hook 'post-command-hook #'auto-rename-tag--post-command t))
+  (remove-hook 'after-change-functions #'auto-rename-tag--after-change t))
 
 ;;;###autoload
 (define-minor-mode auto-rename-tag-mode
