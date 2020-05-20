@@ -342,15 +342,10 @@ DIRECT can be either only 'backward and 'forward."
        (unless is-closing-tag (auto-rename-tag--resolve-nested direct))))))
 
 
-(defun auto-rename-tag--before-change-functions (_begin _end)
-  "Do stuff before buffer is changed.
-BEGIN : beginning of the changes.
-END : end of the changes."
-
-  ;; Reset record.
-  (setq auto-rename-tag--record-prev-word "")
-  ;; Reset flag.
-  (setq auto-rename-tag--pre-command-actived nil)
+(defun auto-rename-tag--before-action ()
+  "Before rename core action."
+  (setq auto-rename-tag--record-prev-word "")  ; Reset record.
+  (setq auto-rename-tag--pre-command-actived nil)  ; Reset flag.
 
   (when (and (not undo-in-progress)
              (auto-rename-tag--inside-tag-p)
@@ -368,8 +363,8 @@ END : end of the changes."
       (unless auto-rename-tag--record-prev-word
         (setq auto-rename-tag--record-prev-word "")))))
 
-(defun auto-rename-tag--post-command ()
-  "Do stuff after buffer is changed."
+(defun auto-rename-tag--after-action ()
+  "After rename core action."
   (when auto-rename-tag--pre-command-actived
     (save-excursion
       (let ((is-end-tag nil)
@@ -417,6 +412,14 @@ END : end of the changes."
               (insert current-word))))))))
 
 
+(defun auto-rename-tag--before-change-functions (_begin _end)
+  "Do stuff before buffer is changed."
+  (auto-rename-tag--before-action))
+
+(defun auto-rename-tag--post-command ()
+  "Do stuff after buffer is changed."
+  (auto-rename-tag--after-action))
+
 (defun auto-rename-tag--enable ()
   "Enable `auto-rename-tag' in current buffer."
   (add-hook 'before-change-functions #'auto-rename-tag--before-change-functions nil t)
@@ -426,7 +429,6 @@ END : end of the changes."
   "Disable `auto-rename-tag' in current buffer."
   (remove-hook 'before-change-functions #'auto-rename-tag--before-change-functions t)
   (remove-hook 'post-command-hook #'auto-rename-tag--post-command t))
-
 
 ;;;###autoload
 (define-minor-mode auto-rename-tag-mode
