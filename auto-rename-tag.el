@@ -372,11 +372,8 @@ END : end of the changes."
       (unless auto-rename-tag--record-prev-word
         (setq auto-rename-tag--record-prev-word "")))))
 
-(defun auto-rename-tag--after-change-function (_begin _end _length)
-  "Do stuff after buffer is changed.
-BEGIN : beginning of the changes.
-END : end of the changes.
-LENGTH : deletion length."
+(defun auto-rename-tag--post-command ()
+  "Do stuff after buffer is changed."
   (when auto-rename-tag--pre-command-actived
     (save-excursion
       (let ((is-end-tag nil)
@@ -429,12 +426,12 @@ LENGTH : deletion length."
 (defun auto-rename-tag--enable ()
   "Enable `auto-rename-tag' in current buffer."
   (add-hook 'before-change-functions #'auto-rename-tag--before-change-functions nil t)
-  (add-hook 'after-change-functions #'auto-rename-tag--after-change-function nil t))
+  (add-hook 'post-command-hook #'auto-rename-tag--post-command nil t))
 
 (defun auto-rename-tag--disable ()
   "Disable `auto-rename-tag' in current buffer."
   (remove-hook 'before-change-functions #'auto-rename-tag--before-change-functions t)
-  (remove-hook 'after-change-functions #'auto-rename-tag--after-change-function t))
+  (remove-hook 'post-command-hook #'auto-rename-tag--post-command t))
 
 
 ;;;###autoload
