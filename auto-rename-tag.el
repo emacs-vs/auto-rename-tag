@@ -366,6 +366,7 @@ DIRECT can be either only 'backward and 'forward."
 (defun auto-rename-tag--after-action ()
   "After rename core action."
   (when auto-rename-tag--pre-command-actived
+    (setq auto-rename-tag--pre-command-actived nil)  ; Disable flag immediately.
     (save-excursion
       (let ((is-end-tag nil)
             (current-word "") (pair-tag-word ""))
