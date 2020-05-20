@@ -314,8 +314,6 @@ DIRECT can be either only 'backward and 'forward."
             ('backward (auto-rename-tag--backward-count-nested-close-tag auto-rename-tag--record-prev-word))
             ('forward (auto-rename-tag--forward-count-nested-open-tag auto-rename-tag--record-prev-word))))
 
-    (message "nested-count: %s" nested-count)
-
     ;; Resolve nested.
     (while (not (= nested-count 0))
       (setq nested-count (- nested-count 1))
@@ -336,8 +334,6 @@ DIRECT can be either only 'backward and 'forward."
        (ignore-errors (forward-char 1))))
 
     (setq is-closing-tag (auto-rename-tag--is-closing-tag-p))
-
-    (message "%s : %s" (point) nested-count)
 
     (cl-case direct
       ('backward
