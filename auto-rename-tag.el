@@ -50,6 +50,12 @@
 (defvar-local auto-rename-tag--record-prev-word ""
   "Record down the word in `pre-command-hook'.")
 
+(defvar-local auto-rename-tag--after-action-active nil
+  "Check if `after-action' is currently called.")
+
+(defvar-local auto-rename-tag--buffer-length -1
+  "Record down the buffer changes.")
+
 
 (defun auto-rename-tag--delete-tag-name ()
   "Delete the current tag name."
@@ -345,91 +351,98 @@ DIRECT can be either only 'backward and 'forward."
 
 (defun auto-rename-tag--before-action ()
   "Before rename core action."
-  (setq auto-rename-tag--record-prev-word "")  ; Reset record.
-  (setq auto-rename-tag--pre-command-activated nil)  ; Reset flag.
+  (unless auto-rename-tag--after-action-active
+    (setq auto-rename-tag--record-prev-word "")     ; Reset record.
+    (setq auto-rename-tag--pre-command-activated nil) ; Reset flag.
 
-  (when (and (not undo-in-progress)
-             (auto-rename-tag--inside-tag-p)
-             (not (auto-rename-tag--self-tag-p)))
-    (save-excursion
-      ;; Set active flag.
-      (setq auto-rename-tag--pre-command-activated t)
+    (when (and (not undo-in-progress)
+               (auto-rename-tag--inside-tag-p)
+               (not (auto-rename-tag--self-tag-p)))
+      (save-excursion
+        ;; Set active flag.
+        (setq auto-rename-tag--pre-command-activated t)
 
-      (setq auto-rename-tag--record-prev-word (auto-rename-tag--get-tag-name-at-point))
+        (setq auto-rename-tag--record-prev-word (auto-rename-tag--get-tag-name-at-point))
 
-      (when (string= auto-rename-tag--record-prev-word "/")
-        (setq auto-rename-tag--record-prev-word ""))
+        (when (string= auto-rename-tag--record-prev-word "/")
+          (setq auto-rename-tag--record-prev-word ""))
 
-      ;; Ensure `auto-rename-tag--record-prev-word' is something other than nil.
-      (unless auto-rename-tag--record-prev-word
-        (setq auto-rename-tag--record-prev-word "")))))
+        ;; Ensure `auto-rename-tag--record-prev-word' is something other than nil.
+        (unless auto-rename-tag--record-prev-word
+          (setq auto-rename-tag--record-prev-word ""))))))
 
 (defun auto-rename-tag--after-action ()
   "After rename core action."
-  (when auto-rename-tag--pre-command-activated
-    (save-excursion
-      (let ((is-end-tag nil)
-            (current-word "") (pair-tag-word ""))
-        ;; Goto the first character inside the tag.
-        (auto-rename-tag--goto-the-start-of-tag-name)
+  (let ((buf-len (length (buffer-string))))
+    (unless (= auto-rename-tag--buffer-length buf-len)
+      (setq auto-rename-tag--buffer-length buf-len)  ; Update buffer length.
 
-        (setq is-end-tag (auto-rename-tag--is-closing-tag-p))
+      (when (and auto-rename-tag--pre-command-activated
+                 (not auto-rename-tag--after-action-active))
+        (save-excursion
+          (let ((auto-rename-tag--after-action-active t)
+                (is-end-tag nil)
+                (current-word "") (pair-tag-word ""))
+            ;; Goto the first character inside the tag.
+            (auto-rename-tag--goto-the-start-of-tag-name)
 
-        (setq current-word (auto-rename-tag--get-tag-name-at-point))
+            (setq is-end-tag (auto-rename-tag--is-closing-tag-p))
 
-        (unless (string= current-word auto-rename-tag--record-prev-word)
-          ;; NOTE: Is closing tag.
-          (when is-end-tag
-            (ignore-errors (auto-rename-tag--resolve-nested 'backward))
+            (setq current-word (auto-rename-tag--get-tag-name-at-point))
 
-            ;; Get the tag name and ready to be compare.
-            (setq pair-tag-word (auto-rename-tag--get-tag-name-at-point))
+            (unless (string= current-word auto-rename-tag--record-prev-word)
+              ;; NOTE: Is closing tag.
+              (when is-end-tag
+                (ignore-errors (auto-rename-tag--resolve-nested 'backward))
 
-            ;; Ensure `pair-tag-word' is something other than nil.
-            (unless pair-tag-word (setq pair-tag-word ""))
+                ;; Get the tag name and ready to be compare.
+                (setq pair-tag-word (auto-rename-tag--get-tag-name-at-point))
 
-            (when (string= auto-rename-tag--record-prev-word pair-tag-word)
-              ;; Delete the pair word.
-              (unless (string= pair-tag-word "")
-                (auto-rename-tag--delete-tag-name))
-              ;; Insert new word.
-              (insert current-word)))
+                ;; Ensure `pair-tag-word' is something other than nil.
+                (unless pair-tag-word (setq pair-tag-word ""))
 
-          ;; NOTE: Is opening tag.
-          (unless is-end-tag
-            (ignore-errors (auto-rename-tag--resolve-nested 'forward))
+                (when (string= auto-rename-tag--record-prev-word pair-tag-word)
+                  ;; Delete the pair word.
+                  (unless (string= pair-tag-word "")
+                    (auto-rename-tag--delete-tag-name))
+                  ;; Insert new word.
+                  (insert current-word)))
 
-            ;; Get the tag name and ready to be compare.
-            (setq pair-tag-word (auto-rename-tag--get-tag-name-at-point))
+              ;; NOTE: Is opening tag.
+              (unless is-end-tag
+                (ignore-errors (auto-rename-tag--resolve-nested 'forward))
 
-            ;; Ensure `pair-tag-word' is something other than nil.
-            (unless pair-tag-word (setq pair-tag-word ""))
+                ;; Get the tag name and ready to be compare.
+                (setq pair-tag-word (auto-rename-tag--get-tag-name-at-point))
 
-            (when (string= auto-rename-tag--record-prev-word pair-tag-word)
-              ;; Delete the pair word.
-              (unless (string= pair-tag-word "")
-                (auto-rename-tag--delete-tag-name))
-              ;; Insert new word.
-              (insert current-word))))))))
+                ;; Ensure `pair-tag-word' is something other than nil.
+                (unless pair-tag-word (setq pair-tag-word ""))
+
+                (when (string= auto-rename-tag--record-prev-word pair-tag-word)
+                  ;; Delete the pair word.
+                  (unless (string= pair-tag-word "")
+                    (auto-rename-tag--delete-tag-name))
+                  ;; Insert new word.
+                  (insert current-word))))))))))
 
 
-(defun auto-rename-tag--before-change (&rest _args)
-  "Do stuff before buffer is changed."
+(defun auto-rename-tag--pre-command ()
+  "Do stuff after buffer is changed."
   (auto-rename-tag--before-action))
 
-(defun auto-rename-tag--after-change (&rest _args)
+(defun auto-rename-tag--post-command ()
   "Do stuff after buffer is changed."
   (auto-rename-tag--after-action))
 
 (defun auto-rename-tag--enable ()
   "Enable `auto-rename-tag' in current buffer."
-  (add-hook 'before-change-functions #'auto-rename-tag--before-change nil t)
-  (add-hook 'after-change-functions #'auto-rename-tag--after-change nil t))
+  (add-hook 'pre-command-hook #'auto-rename-tag--pre-command nil t)
+  (add-hook 'post-command-hook #'auto-rename-tag--post-command nil t))
 
 (defun auto-rename-tag--disable ()
   "Disable `auto-rename-tag' in current buffer."
-  (remove-hook 'before-change-functions #'auto-rename-tag--before-change t)
-  (remove-hook 'after-change-functions #'auto-rename-tag--after-change t))
+  (remove-hook 'pre-command-hook #'auto-rename-tag--pre-command t)
+  (remove-hook 'post-command-hook #'auto-rename-tag--post-command t))
 
 ;;;###autoload
 (define-minor-mode auto-rename-tag-mode
