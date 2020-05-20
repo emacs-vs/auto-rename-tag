@@ -44,10 +44,10 @@
 (defconst auto-rename-tag--tag-regexp "<[^>]*"
   "Tag regular expression to find tag position.")
 
-(defvar auto-rename-tag--pre-command-actived nil
+(defvar-local auto-rename-tag--pre-command-actived nil
   "Check if `pre-command-hook' called.")
 
-(defvar auto-rename-tag--record-prev-word ""
+(defvar-local auto-rename-tag--record-prev-word ""
   "Record down the word in `pre-command-hook'.")
 
 
@@ -366,7 +366,7 @@ DIRECT can be either only 'backward and 'forward."
 (defun auto-rename-tag--after-action ()
   "After rename core action."
   (when auto-rename-tag--pre-command-actived
-    (setq auto-rename-tag--pre-command-actived nil)  ; Disable flag immediately.
+    (setq auto-rename-tag--pre-command-actived nil)  ; Reset flag.
     (save-excursion
       (let ((is-end-tag nil)
             (current-word "") (pair-tag-word ""))
@@ -380,7 +380,7 @@ DIRECT can be either only 'backward and 'forward."
         (unless (string= current-word auto-rename-tag--record-prev-word)
           ;; NOTE: Is closing tag.
           (when is-end-tag
-            (auto-rename-tag--resolve-nested 'backward)
+            (ignore-errors (auto-rename-tag--resolve-nested 'backward))
 
             ;; Get the tag name and ready to be compare.
             (setq pair-tag-word (auto-rename-tag--get-tag-name-at-point))
@@ -397,7 +397,7 @@ DIRECT can be either only 'backward and 'forward."
 
           ;; NOTE: Is opening tag.
           (unless is-end-tag
-            (auto-rename-tag--resolve-nested 'forward)
+            (ignore-errors (auto-rename-tag--resolve-nested 'forward))
 
             ;; Get the tag name and ready to be compare.
             (setq pair-tag-word (auto-rename-tag--get-tag-name-at-point))
@@ -413,22 +413,29 @@ DIRECT can be either only 'backward and 'forward."
               (insert current-word))))))))
 
 
-(defun auto-rename-tag--before-change-functions (_begin _end)
+(defun auto-rename-tag--before-change (&rest _args)
   "Do stuff before buffer is changed."
   (auto-rename-tag--before-action))
 
-(defun auto-rename-tag--post-command ()
+(defun auto-rename-tag--after-change (&rest _args)
   "Do stuff after buffer is changed."
+  (auto-rename-tag--after-action))
+
+(defun auto-rename-tag--post-command ()
+  "Do stuff after buffer is changed.
+NOTE: Having this function is for `lsp` display issue with flycheck.."
   (auto-rename-tag--after-action))
 
 (defun auto-rename-tag--enable ()
   "Enable `auto-rename-tag' in current buffer."
-  (add-hook 'before-change-functions #'auto-rename-tag--before-change-functions nil t)
+  (add-hook 'before-change-functions #'auto-rename-tag--before-change nil t)
+  (add-hook 'after-change-functions #'auto-rename-tag--after-change nil t)
   (add-hook 'post-command-hook #'auto-rename-tag--post-command nil t))
 
 (defun auto-rename-tag--disable ()
   "Disable `auto-rename-tag' in current buffer."
-  (remove-hook 'before-change-functions #'auto-rename-tag--before-change-functions t)
+  (remove-hook 'before-change-functions #'auto-rename-tag--before-change t)
+  (remove-hook 'after-change-functions #'auto-rename-tag--after-change t)
   (remove-hook 'post-command-hook #'auto-rename-tag--post-command t))
 
 ;;;###autoload
