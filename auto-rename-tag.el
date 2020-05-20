@@ -366,7 +366,6 @@ DIRECT can be either only 'backward and 'forward."
 (defun auto-rename-tag--after-action ()
   "After rename core action."
   (when auto-rename-tag--pre-command-actived
-    (setq auto-rename-tag--pre-command-actived nil)  ; Reset flag.
     (save-excursion
       (let ((is-end-tag nil)
             (current-word "") (pair-tag-word ""))
@@ -423,7 +422,7 @@ DIRECT can be either only 'backward and 'forward."
 
 (defun auto-rename-tag--post-command ()
   "Do stuff after buffer is changed.
-NOTE: Having this function is for `lsp` display issue with flycheck.."
+NOTE: Having this function is for `lsp` display issue with flycheck."
   (auto-rename-tag--after-action))
 
 (defun auto-rename-tag--enable ()
