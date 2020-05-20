@@ -410,8 +410,6 @@ LENGTH : deletion length."
           (unless is-end-tag
             (auto-rename-tag--resolve-nested 'forward)
 
-            (setq is-end-tag (auto-rename-tag--is-closing-tag-p))
-
             ;; Get the tag name and ready to be compare.
             (setq pair-tag-word (auto-rename-tag--get-tag-name-at-point))
 
