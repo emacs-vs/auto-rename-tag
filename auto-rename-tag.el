@@ -44,11 +44,14 @@
 (defconst auto-rename-tag--tag-regexp "<[^>]*"
   "Tag regular expression to find tag position.")
 
-(defvar-local auto-rename-tag--pre-command-activated nil
-  "Check if `pre-command-hook' called.")
+(defvar-local auto-rename-tag--before-action-activated nil
+  "Check if `before-action' called.")
+
+(defvar-local auto-rename-tag--after-action-active nil
+  "Check if `after-action' is currently called.")
 
 (defvar-local auto-rename-tag--record-prev-word ""
-  "Record down the word in `pre-command-hook'.")
+  "Record down the word in `before-action'.")
 
 
 (defun auto-rename-tag--delete-tag-name ()
@@ -345,31 +348,35 @@ DIRECT can be either only 'backward and 'forward."
 
 (defun auto-rename-tag--before-action ()
   "Before rename core action."
-  (setq auto-rename-tag--record-prev-word "")  ; Reset record.
-  (setq auto-rename-tag--pre-command-activated nil)  ; Reset flag.
+  (unless auto-rename-tag--after-action-active
+    (setq auto-rename-tag--record-prev-word "")     ; Reset record.
+    (setq auto-rename-tag--before-action-activated nil) ; Reset flag.
 
-  (when (and (not undo-in-progress)
-             (auto-rename-tag--inside-tag-p)
-             (not (auto-rename-tag--self-tag-p)))
-    (save-excursion
-      ;; Set active flag.
-      (setq auto-rename-tag--pre-command-activated t)
+    (when (and (not undo-in-progress)
+               (auto-rename-tag--inside-tag-p)
+               (not (auto-rename-tag--self-tag-p)))
+      (save-excursion
+        ;; Set active flag.
+        (setq auto-rename-tag--before-action-activated t)
 
-      (setq auto-rename-tag--record-prev-word (auto-rename-tag--get-tag-name-at-point))
+        (setq auto-rename-tag--record-prev-word (auto-rename-tag--get-tag-name-at-point))
 
-      (when (string= auto-rename-tag--record-prev-word "/")
-        (setq auto-rename-tag--record-prev-word ""))
+        (when (string= auto-rename-tag--record-prev-word "/")
+          (setq auto-rename-tag--record-prev-word ""))
 
-      ;; Ensure `auto-rename-tag--record-prev-word' is something other than nil.
-      (unless auto-rename-tag--record-prev-word
-        (setq auto-rename-tag--record-prev-word "")))))
+        ;; Ensure `auto-rename-tag--record-prev-word' is something other than nil.
+        (unless auto-rename-tag--record-prev-word
+          (setq auto-rename-tag--record-prev-word ""))))))
 
 (defun auto-rename-tag--after-action ()
   "After rename core action."
-  (when auto-rename-tag--pre-command-activated
+  (when (and auto-rename-tag--before-action-activated
+             (not auto-rename-tag--after-action-active))
     (save-excursion
-      (let ((is-end-tag nil)
-            (current-word "") (pair-tag-word ""))
+      (let ((auto-rename-tag--after-action-active t)
+            (is-end-tag nil)
+            (current-word "") (pair-tag-word "")
+            (inhibit-modification-hooks nil))
         ;; Goto the first character inside the tag.
         (auto-rename-tag--goto-the-start-of-tag-name)
 
