@@ -7,7 +7,7 @@
 ;; Description: Automatically rename paired HTML/XML tag.
 ;; Keyword: auto-complete html rename tag xml
 ;; Version: 0.2.8
-;; Package-Requires: ((emacs "24.4") (cl-lib "0.6"))
+;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://github.com/jcs090218/auto-rename-tag
 
 ;; This file is NOT part of GNU Emacs.
