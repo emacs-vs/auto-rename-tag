@@ -40,7 +40,6 @@
   :group 'tool
   :link '(url-link :tag "Repository" "https://github.com/jcs090218/auto-rename-tag"))
 
-
 (defconst auto-rename-tag--tag-regexp "<[^>]*"
   "Tag regular expression to find tag position.")
 
@@ -50,12 +49,7 @@
 (defvar-local auto-rename-tag--record-prev-word ""
   "Record down the word in `pre-command-hook'.")
 
-
-(defun auto-rename-tag--delete-tag-name ()
-  "Delete the current tag name."
-  (let ((tag-start (auto-rename-tag--tag-name-start-pt))
-        (tag-end (auto-rename-tag--tag-name-end-pt)))
-    (delete-region tag-start tag-end)))
+;; Util
 
 (defun auto-rename-tag--is-beginning-of-buffer-p ()
   "Is at the beginning of buffer?"
@@ -72,6 +66,14 @@
       nil
     (let ((current-char-string (string (char-before))))
       (string= current-char-string c))))
+
+;; Core
+
+(defun auto-rename-tag--delete-tag-name ()
+  "Delete the current tag name."
+  (let ((tag-start (auto-rename-tag--tag-name-start-pt))
+        (tag-end (auto-rename-tag--tag-name-end-pt)))
+    (delete-region tag-start tag-end)))
 
 (defun auto-rename-tag--is-closing-tag-p ()
   "Check if current tag a closing tag."
