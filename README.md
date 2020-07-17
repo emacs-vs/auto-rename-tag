@@ -7,7 +7,7 @@
 > Automatically rename paired HTML/XML tag.
 
 <p align="center">
-  <img src="./screenshot/auto-rename-tag-demo.gif" width="600" height="255"/>
+  <img src="./etc/auto-rename-tag-demo.gif" width="600" height="255"/>
 </p>
 
 ## Usage
