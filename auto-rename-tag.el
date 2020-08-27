@@ -8,7 +8,7 @@
 ;; Keyword: auto-complete html rename tag xml
 ;; Version: 0.2.9
 ;; Package-Requires: ((emacs "24.4"))
-;; URL: https://github.com/jcs090218/auto-rename-tag
+;; URL: https://github.com/jcs-elpa/auto-rename-tag
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -38,7 +38,7 @@
   "Automatically rename paired HTML/XML tag."
   :prefix "auto-rename-tag-"
   :group 'tool
-  :link '(url-link :tag "Repository" "https://github.com/jcs090218/auto-rename-tag"))
+  :link '(url-link :tag "Repository" "https://github.com/jcs-elpa/auto-rename-tag"))
 
 (defconst auto-rename-tag--tag-regexp "<[^>]*"
   "Tag regular expression to find tag position.")
