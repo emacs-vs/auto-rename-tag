@@ -352,7 +352,7 @@ DIRECT can be either only 'backward and 'forward."
 (defun auto-rename-tag--valid-do-p ()
   "See if current change are valid to do rename tag action."
   (and (not undo-in-progress)
-       (and (fboundp 'iedit-mode) (not iedit-mode))
+       (if (fboundp 'iedit-mode) (not iedit-mode) t)
        (not (memq this-command auto-rename-tag-disabled-commands))
        (auto-rename-tag--inside-tag-p)
        (not (auto-rename-tag--self-tag-p))))
