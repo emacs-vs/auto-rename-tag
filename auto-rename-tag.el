@@ -45,7 +45,13 @@
 
 (defcustom auto-rename-tag-disabled-commands
   '(query-replace)
-  "List of commands that wouldn't take effect."
+  "List of disabled commands."
+  :type 'list
+  :group 'auto-rename-tag)
+
+(defcustom auto-rename-tag-disabled-minor-modes
+  '(iedit-mode)
+  "List of disabled minor modes."
   :type 'list
   :group 'auto-rename-tag)
 
@@ -349,10 +355,22 @@ DIRECT can be either only 'backward and 'forward."
       ('forward
        (unless is-closing-tag (auto-rename-tag--resolve-nested direct))))))
 
+(defun auto-rename-tag--disabled-minor-modes-p ()
+  "Check currently any disabled minor mode active.
+Return non-nil, if there is at least one minor mode active.
+Return nil, meaning is safe to do rename tag action."
+  (let ((ret t) (index 0) m-mode)
+    (while (and ret
+                (< index (length auto-rename-tag-disabled-minor-modes)))
+      (setq m-mode (nth index auto-rename-tag-disabled-minor-modes))
+      (setq ret (if (fboundp m-mode) (not (symbol-value m-mode)) t))
+      (setq index (1+ index)))
+    ret))
+
 (defun auto-rename-tag--valid-do-p ()
   "See if current change are valid to do rename tag action."
   (and (not undo-in-progress)
-       (if (fboundp 'iedit-mode) (not iedit-mode) t)
+       (auto-rename-tag--disabled-minor-modes-p)
        (not (memq this-command auto-rename-tag-disabled-commands))
        (auto-rename-tag--inside-tag-p)
        (not (auto-rename-tag--self-tag-p))))
