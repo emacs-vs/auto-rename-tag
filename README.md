@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/jcs090218/auto-rename-tag.svg?branch=master)](https://travis-ci.com/jcs090218/auto-rename-tag)
+[![Build Status](https://travis-ci.com/jcs-elpa/auto-rename-tag.svg?branch=master)](https://travis-ci.com/jcs-elpa/auto-rename-tag)
 [![MELPA](https://melpa.org/packages/auto-rename-tag-badge.svg)](https://melpa.org/#/auto-rename-tag)
 [![MELPA Stable](https://stable.melpa.org/packages/auto-rename-tag-badge.svg)](https://stable.melpa.org/#/auto-rename-tag)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
@@ -7,7 +7,7 @@
 > Automatically rename paired HTML/XML tag.
 
 <p align="center">
-  <img src="./etc/auto-rename-tag-demo.gif" width="600" height="255"/>
+  <img src="./etc/auto-rename-tag-demo.gif" width="450" height="191"/>
 </p>
 
 ## Usage
