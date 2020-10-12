@@ -363,7 +363,7 @@ Return nil, meaning is safe to do rename tag action."
     (while (and (not ret)
                 (< index (length auto-rename-tag-disabled-minor-modes)))
       (setq m-mode (nth index auto-rename-tag-disabled-minor-modes)
-            ret (symbol-value m-mode))
+            ret (ignore-errors (symbol-value m-mode)))
       (setq index (1+ index)))
     ret))
 
