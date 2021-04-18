@@ -44,7 +44,10 @@
   "Tag regular expression to find tag position.")
 
 (defcustom auto-rename-tag-disabled-commands
-  '(query-replace)
+  '(query-replace
+    query-replace-regexp
+    replace-string
+    replace-regexp)
   "List of disabled commands."
   :type 'list
   :group 'auto-rename-tag)
