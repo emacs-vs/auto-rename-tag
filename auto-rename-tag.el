@@ -358,22 +358,10 @@ DIRECT can be either only 'backward and 'forward."
       (forward
        (unless is-closing-tag (auto-rename-tag--resolve-nested direct))))))
 
-(defun auto-rename-tag--disabled-minor-modes-p ()
-  "Check currently any disabled minor mode active.
-Return non-nil, if there is at least one minor mode active.
-Return nil, meaning is safe to do rename tag action."
-  (let ((index 0) ret m-mode)
-    (while (and (not ret)
-                (< index (length auto-rename-tag-disabled-minor-modes)))
-      (setq m-mode (nth index auto-rename-tag-disabled-minor-modes)
-            ret (ignore-errors (symbol-value m-mode)))
-      (setq index (1+ index)))
-    ret))
-
 (defun auto-rename-tag--valid-do-p ()
   "See if current change are valid to do rename tag action."
   (and (not undo-in-progress)
-       (not (auto-rename-tag--disabled-minor-modes-p))
+       (not (cl-some (lambda (m) (ignore-errors (symbol-value m))) auto-rename-tag-disabled-minor-modes))
        (not (memq this-command auto-rename-tag-disabled-commands))
        (auto-rename-tag--inside-tag-p)
        (not (auto-rename-tag--self-tag-p))))
