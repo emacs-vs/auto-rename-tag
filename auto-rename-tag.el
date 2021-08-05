@@ -364,6 +364,8 @@ DIRECT can be either only 'backward and 'forward."
        (not (cl-some (lambda (m) (ignore-errors (symbol-value m))) auto-rename-tag-disabled-minor-modes))
        (not (memq this-command auto-rename-tag-disabled-commands))
        (auto-rename-tag--inside-tag-p)
+       (not (nth 4 (syntax-ppss)))  ; check inside comment
+       (not (nth 8 (syntax-ppss)))  ; check inside string
        (not (auto-rename-tag--self-tag-p))))
 
 (defun auto-rename-tag--before-action ()
