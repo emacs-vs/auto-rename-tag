@@ -1,12 +1,10 @@
-# ignore these directories.
+# ignore these directories
 /.git
 /recipes
 /test
-auto-rename-tag-pkg.el
 
-# ignore generated files.
+# ignore generated files
 *.elc
 
-# ignore I use to not ignore.
-Update_Log.txt
-TODO(jenchieh).txt
+# ignore package build
+/.eask
