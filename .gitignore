@@ -1,10 +1,15 @@
 # ignore these directories
 /.git
 /recipes
-/test
+/_test
 
 # ignore generated files
 *.elc
 
-# ignore package build
-/.eask
+# eask packages
+.eask/
+dist/
+
+# packaging
+*-autoloads.el
+*-pkg.el
