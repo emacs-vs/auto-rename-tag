@@ -1,4 +1,7 @@
-(package "auto-rename-tag" "0.3.5" "Automatically rename paired HTML/XML tag")
+(package "auto-rename-tag"
+         "0.3.5"
+         "Automatically rename paired HTML/XML tag")
+
 (package-file "auto-rename-tag.el")
 
 (source "melpa")
