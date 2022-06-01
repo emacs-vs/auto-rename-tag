@@ -3,8 +3,6 @@ SHELL := /usr/bin/env bash
 EMACS ?= emacs
 EASK ?= eask
 
-TEST-FILES := $(shell ls test/auto-rename-tag-*.el)
-
 .PHONY: clean checkdoc lint package install compile test
 
 ci: clean package install compile
@@ -23,7 +21,15 @@ compile:
 
 test:
 	@echo "Testing..."
-	$(EASK) exec ert-runner -L . $(LOAD-TEST-FILES) -t '!no-win' -t '!org'
+	$(EASK) test ert ./test/*.el
+
+checkdoc:
+	@echo "Run checkdoc..."
+	$(EASK) lint checkdoc
+
+lint:
+	@echo "Run package-lint..."
+	$(EASK) lint package
 
 clean:
 	$(EASK) clean-all
