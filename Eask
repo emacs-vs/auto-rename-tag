@@ -2,6 +2,9 @@
          "0.3.5"
          "Automatically rename paired HTML/XML tag")
 
+(website-url "https://github.com/jcs-elpa/auto-rename-tag")
+(keywords "auto-complete" "html" "rename" "tag" "xml")
+
 (package-file "auto-rename-tag.el")
 
 (source "melpa")
