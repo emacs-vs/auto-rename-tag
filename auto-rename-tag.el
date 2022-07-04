@@ -7,7 +7,7 @@
 ;; URL: https://github.com/jcs-elpa/auto-rename-tag
 ;; Version: 0.3.5
 ;; Package-Requires: ((emacs "24.4"))
-;; Keywords: auto-complete html rename tag xml
+;; Keywords: convenience auto-complete html rename tag xml
 
 ;; This file is NOT part of GNU Emacs.
 
