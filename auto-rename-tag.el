@@ -4,7 +4,7 @@
 ;; Created date 2018-12-01 23:56:15
 
 ;; Author: Shen, Jen-Chieh <jcs090218@gmail.com>
-;; URL: https://github.com/jcs-elpa/auto-rename-tag
+;; URL: https://github.com/emacs-vs/auto-rename-tag
 ;; Version: 0.3.5
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: convenience auto-complete html rename tag xml
@@ -37,7 +37,7 @@
   "Automatically rename paired HTML/XML tag."
   :prefix "auto-rename-tag-"
   :group 'tool
-  :link '(url-link :tag "Repository" "https://github.com/jcs-elpa/auto-rename-tag"))
+  :link '(url-link :tag "Repository" "https://github.com/emacs-vs/auto-rename-tag"))
 
 (defconst auto-rename-tag--tag-regexp "<[^>]*"
   "Tag regular expression to find tag position.")
