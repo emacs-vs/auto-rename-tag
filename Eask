@@ -1,3 +1,5 @@
+;; -*- mode: eask; lexical-binding: t -*-
+
 (package "auto-rename-tag"
          "0.3.5"
          "Automatically rename paired HTML/XML tag")
